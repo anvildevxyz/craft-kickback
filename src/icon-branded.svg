@@ -1,12 +1,13 @@
 <svg width="237" height="237" viewBox="0 0 237 237" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Branded version for plugin store / marketing -->
-  <rect width="237" height="237" rx="25" fill="#1F262A"/>
-
-  <!-- Price tag -->
-  <path d="M62 148 L62 86 C62 80 67 75 73 75 L135 75 L178 118 L135 161 L62 161 Z"
-        stroke="white" stroke-width="5" stroke-linejoin="round" fill="none"/>
-
-  <!-- Tag hole -->
-  <circle cx="95" cy="100" r="10" fill="white" opacity="0.3"/>
-  <circle cx="95" cy="100" r="10" stroke="white" stroke-width="3" fill="none"/>
+<g clip-path="url(#clip0_164_2)">
+<path d="M212 0H25C11.1929 0 0 11.1929 0 25V212C0 225.807 11.1929 237 25 237H212C225.807 237 237 225.807 237 212V25C237 11.1929 225.807 0 212 0Z" fill="#1F262A"/>
+<path d="M62 148V86C62 80 67 75 73 75H135L178 118L135 161H62V148Z" stroke="white" stroke-width="5" stroke-linejoin="round"/>
+<path opacity="0.3" d="M95 110C100.523 110 105 105.523 105 100C105 94.4772 100.523 90 95 90C89.4772 90 85 94.4772 85 100C85 105.523 89.4772 110 95 110Z" fill="#1F262A"/>
+<path d="M95 110C100.523 110 105 105.523 105 100C105 94.4772 100.523 90 95 90C89.4772 90 85 94.4772 85 100C85 105.523 89.4772 110 95 110Z" stroke="white" stroke-width="3"/>
+</g>
+<defs>
+<clipPath id="clip0_164_2">
+<rect width="237" height="237" fill="white"/>
+</clipPath>
+</defs>
 </svg>

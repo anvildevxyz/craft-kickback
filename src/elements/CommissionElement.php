@@ -286,7 +286,7 @@ class CommissionElement extends Element
         }
 
         foreach (['referralId', 'affiliateId', 'amount', 'currency', 'rate', 'rateType', 'ruleApplied',
-            'ruleResolutionTrace', 'tier', 'payoutId', 'description'] as $attr) {
+            'ruleResolutionTrace', 'tier', 'payoutId', 'description', ] as $attr) {
             $record->$attr = $this->$attr;
         }
         // originalAmount is immutable - only seed on initial save

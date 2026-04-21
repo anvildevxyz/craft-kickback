@@ -174,7 +174,7 @@
             <p>
                 <span class="status blue"></span>
                 <strong>{{ 'payoutStatus.processing'|t('kickback') }}</strong> -
-                {{ 'This payout is being processed via {method}.'|t('kickback', {method: payout.method|capitalize}) }}
+                {{ 'payout.hint.processing'|t('kickback', {method: payout.method|capitalize}) }}
                 {% if payout.gatewayBatchId %}
                     ({{ 'Batch'|t('kickback') }} <code>{{ payout.gatewayBatchId }}</code>)
                 {% endif %}
@@ -199,8 +199,8 @@
         {# Primary: gateway payment #}
         {% if gatewayAvailable is defined and gatewayAvailable and payout.method in ['paypal', 'stripe'] %}
             <div class="pane" style="margin-bottom: 1.5rem;">
-                <h3>{{ 'Send via {gateway}'|t('kickback', {gateway: gatewayName}) }}</h3>
-                <p>{{ 'Process this payout directly through the {gateway} API.'|t('kickback', {gateway: gatewayName}) }}</p>
+                <h3>{{ 'payout.action.sendVia'|t('kickback', {gateway: gatewayName}) }}</h3>
+                <p>{{ 'payout.action.processHint'|t('kickback', {gateway: gatewayName}) }}</p>
                 <form method="post">
                     {{ csrfInput() }}
                     {{ actionInput('kickback/payouts/process') }}
@@ -209,8 +209,8 @@
                     <button type="submit"
                             class="btn submit kb-confirm"
                             data-icon="paper-plane"
-                            data-message="{{ 'Send {amount} via {gateway}?'|t('kickback', {amount: payout.amount|currency(payout.currency), gateway: gatewayName})|e('html_attr') }}">
-                        {{ 'Pay via {gateway}'|t('kickback', {gateway: gatewayName}) }}
+                            data-message="{{ 'payout.action.confirmSendVia'|t('kickback', {amount: payout.amount|currency(payout.currency), gateway: gatewayName})|e('html_attr') }}">
+                        {{ 'payout.action.payVia'|t('kickback', {gateway: gatewayName}) }}
                     </button>
                 </form>
             </div>
@@ -236,7 +236,7 @@
                                id="transactionId"
                                name="transactionId"
                                class="text fullwidth"
-                               placeholder="{{ 'e.g. PayPal transaction ID'|t('kickback') }}">
+                               placeholder="{{ 'payout.field.transactionIdPlaceholder'|t('kickback') }}">
                     </div>
                 </div>
 

@@ -127,7 +127,7 @@ class ProgramsController extends Controller
         if (KickBack::getInstance()->programs->deleteProgramById($programId)) {
             Craft::$app->getSession()->setNotice(Craft::t('kickback', 'Program deleted.'));
         } else {
-            Craft::$app->getSession()->setError(Craft::t('kickback', 'Couldn\'t delete program.'));
+            Craft::$app->getSession()->setError(Craft::t('kickback', 'program.message.deleteFailed'));
         }
 
         return $this->redirect('kickback/programs');

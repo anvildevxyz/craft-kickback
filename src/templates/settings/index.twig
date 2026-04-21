@@ -500,7 +500,7 @@
             <h2>{{ 'settings.portal'|t('kickback') }} - {{ currentSite.name }}</h2>
             <p class="light">
                 {# |raw is safe: the translation string is template-literal and we control it. Re-audit if strings are externalized. #}
-                {{ 'Settings below apply to <strong>{site}</strong>. Use the site switcher at the top of the page to configure other sites.'|t('kickback', {site: currentSite.name})|raw }}
+                {{ 'settings.portal.perSiteHint'|t('kickback', {site: currentSite.name})|raw }}
             </p>
 
             {{ forms.lightswitchField({
@@ -514,7 +514,7 @@
                 <div class="heading">
                     <label for="portalPath">{{ 'Portal URL path'|t('kickback') }}</label>
                     <div class="instructions">
-                        <p>{{ 'Path segment appended to this site\'s base URL, e.g. "affiliate" → {base}affiliate. Letters, numbers, dashes, underscores, and slashes only.'|t('kickback', {base: currentSite.baseUrl|default('https://example.com/')}) }}</p>
+                        <p>{{ 'settings.portal.pathHint'|t('kickback', {base: currentSite.baseUrl|default('https://example.com/')}) }}</p>
                     </div>
                 </div>
                 <div class="input">

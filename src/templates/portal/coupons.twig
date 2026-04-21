@@ -80,7 +80,7 @@
 
     {% if not activeCoupons|length and not inactiveCoupons|length %}
         <div class="kb-empty">
-            <p>{{ 'You haven\'t created any coupons yet. Generate one above to start sharing discount codes with your audience.'|t('kickback') }}</p>
+            <p>{{ 'coupon.message.empty'|t('kickback') }}</p>
         </div>
     {% endif %}
 {% endblock %}

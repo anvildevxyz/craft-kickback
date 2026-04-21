@@ -4,7 +4,7 @@
 
 {% block content %}
     {% do view.registerAssetBundle('anvildev\\craftkickback\\assets\\cp\\CpAssetBundle') %}
-    <p>{{ 'Affiliates with a pending balance of at least {amount} are eligible for payout.'|t('kickback', {
+    <p>{{ 'payout.batch.eligibilityHint'|t('kickback', {
         amount: minimumAmount|currency(currency),
     }) }}</p>
 
@@ -40,7 +40,7 @@
                     <div class="instructions"><p>{{ 'payout.batchNotesHint'|t('kickback') }}</p></div>
                 </div>
                 <div class="input">
-                    <input type="text" id="notes" name="notes" class="text fullwidth" placeholder="{{ 'e.g. Monthly payout - February 2026'|t('kickback') }}">
+                    <input type="text" id="notes" name="notes" class="text fullwidth" placeholder="{{ 'payout.field.notesPlaceholder'|t('kickback') }}">
                 </div>
             </div>
 
@@ -57,8 +57,8 @@
             {% endif %}
 
             <div class="kb-form-footer btngroup">
-                <button type="submit" class="btn submit kb-confirm" data-message="{{ 'Create {count} payout(s)?'|t('kickback', {count: eligibleAffiliates|length})|e('html_attr') }}">
-                    {{ 'Create {count} Payout(s)'|t('kickback', {count: eligibleAffiliates|length}) }}
+                <button type="submit" class="btn submit kb-confirm" data-message="{{ 'payout.action.confirmCreateCount'|t('kickback', {count: eligibleAffiliates|length})|e('html_attr') }}">
+                    {{ 'payout.action.createCount'|t('kickback', {count: eligibleAffiliates|length}) }}
                 </button>
             </div>
         </form>

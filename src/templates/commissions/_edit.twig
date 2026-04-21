@@ -1,6 +1,6 @@
 {% extends '_layouts/cp' %}
 {% import '_includes/forms' as forms %}
-{% set title = 'Commission #{id}'|t('kickback', { id: commission.id }) %}
+{% set title = 'commission.label.id'|t('kickback', { id: commission.id }) %}
 {% set selectedSubnavItem = 'commissions' %}
 
 {% set crumbs = [
@@ -56,7 +56,7 @@
         {{ forms.field({ label: 'affiliate.one'|t('kickback') }, affiliateValue)|raw }}
 
         {% set referralValue = referral
-            ? ('<a href="' ~ referral.cpEditUrl ~ '">' ~ ('Referral #{id}'|t('kickback', { id: referral.id })|e) ~ '</a>')
+            ? ('<a href="' ~ referral.cpEditUrl ~ '">' ~ ('referral.label.id'|t('kickback', { id: referral.id })|e) ~ '</a>')
             : '<span class="light">-</span>' %}
         {{ forms.field({ label: 'Referral'|t('kickback') }, referralValue)|raw }}
 
@@ -80,7 +80,7 @@
             {{ forms.field({ label: 'common.description'|t('kickback') }, commission.description) }}
         {% endif %}
         {% if commission.isRecurring %}
-            {{ forms.field({ label: 'Recurring'|t('kickback') }, 'Yes'|t('kickback') ~ ' (' ~ 'Renewal #{n}'|t('kickback', { n: commission.renewalNumber }) ~ ')') }}
+            {{ forms.field({ label: 'Recurring'|t('kickback') }, 'Yes'|t('kickback') ~ ' (' ~ 'commission.label.renewal'|t('kickback', { n: commission.renewalNumber }) ~ ')') }}
         {% endif %}
     </div>
 {% endblock %}

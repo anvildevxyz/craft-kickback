@@ -21,13 +21,13 @@
         <h2>{{ 'New programs must be created on the primary site'|t('kickback') }}</h2>
         <p style="color: #666; margin: 1rem 0 2rem;">
             {# |raw is safe: the translation string is template-literal and we control it. Re-audit if strings are externalized. #}
-            {{ "You're currently editing <strong>{current}</strong>. To create a new program, switch to <strong>{primary}</strong> first, then translate it to other sites once created."|t('kickback', {
+            {{ 'program.hint.newRequiresPrimary'|t('kickback', {
                 current: currentSite.name,
                 primary: primarySite.name,
             })|raw }}
         </p>
         <a href="{{ url('kickback/programs/new', { site: primarySite.handle }) }}" class="btn submit">
-            {{ 'Switch to {site}'|t('kickback', { site: primarySite.name }) }}
+            {{ 'program.action.switchSite'|t('kickback', { site: primarySite.name }) }}
         </a>
     </div>
 {% endblock %}

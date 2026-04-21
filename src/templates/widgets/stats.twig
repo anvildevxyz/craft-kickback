@@ -21,7 +21,7 @@
     </div>
     {% if flaggedCount > 0 %}
         <div class="kb-widget__alert">
-            <a href="{{ cpUrl('kickback/fraud') }}">{{ '{count} flagged referral(s)'|t('kickback', { count: flaggedCount }) }}</a>
+            <a href="{{ cpUrl('kickback/fraud') }}">{{ 'widget.stats.flaggedCount'|t('kickback', { count: flaggedCount }) }}</a>
         </div>
     {% endif %}
     <div class="kb-widget__footer">

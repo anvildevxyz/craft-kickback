@@ -127,7 +127,7 @@
             <div class="field">
                 <div class="heading">
                     <label for="tierLevel">{{ 'common.tierLevel'|t('kickback') }}</label>
-                    <div class="instructions"><p>{{ 'Which level in the recruiter chain earns this override (2 = direct recruiter, 3 = recruiter\'s recruiter, etc.).'|t('kickback') }}</p></div>
+                    <div class="instructions"><p>{{ 'rule.hint.tierLevel'|t('kickback') }}</p></div>
                 </div>
                 <div class="input">
                     <input type="number" min="2" id="tierLevel" name="tierLevel" value="{{ rule and rule.tierLevel ? rule.tierLevel : '' }}" class="text fullwidth">

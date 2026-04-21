@@ -169,7 +169,7 @@ class PayoutsController extends Controller
             Craft::t('kickback', 'Payout processed via {method}.', [
                 'method' => ucfirst($payout->method),
             ]),
-            Craft::t('kickback', 'Couldn\'t process payout. Check gateway configuration and affiliate details.'),
+            Craft::t('kickback', 'payout.message.processFailed'),
         );
     }
 

@@ -40,7 +40,7 @@ class RegistrationController extends Controller
             if ($parentAffiliate === null || $parentAffiliate->affiliateStatus !== AffiliateElement::STATUS_ACTIVE) {
                 Craft::$app->getSession()->setNotice(Craft::t(
                     'kickback',
-                    "We couldn't find that referral code, but you can still sign up.",
+                    'registration.message.recruiterNotFound',
                 ));
                 $recruiter = '';
             }
@@ -92,7 +92,7 @@ class RegistrationController extends Controller
                 }
                 Craft::$app->getSession()->setNotice(Craft::t(
                     'kickback',
-                    'Account created! Check your email to verify and activate your account.',
+                    'registration.message.accountCreatedNeedsVerify',
                 ));
                 return $this->redirect('/');
             }
@@ -124,7 +124,7 @@ class RegistrationController extends Controller
                 Craft::warning("Registration with inactive parent affiliate #{$parentAffiliate->id} (status: {$parentAffiliate->affiliateStatus})", __METHOD__);
                 $parentWarning = Craft::t(
                     'kickback',
-                    'The referral link you used is no longer active. You have been registered without a recruiter.',
+                    'registration.message.recruiterInactive',
                 );
                 Craft::$app->getSession()->setNotice($parentWarning);
             } else {
@@ -152,7 +152,7 @@ class RegistrationController extends Controller
             }
             Craft::$app->getSession()->setNotice(Craft::t(
                 'kickback',
-                'Account created! Check your email to verify and activate your account.',
+                'registration.message.accountCreatedNeedsVerify',
             ));
             return $this->redirect('/');
         }
@@ -229,7 +229,7 @@ class RegistrationController extends Controller
 
         if (!Craft::$app->getElements()->saveElement($user)) {
             $firstError = current($user->getFirstErrors()) ?: null;
-            Craft::$app->getSession()->setError($firstError ?? Craft::t('kickback', "Couldn't create user account."));
+            Craft::$app->getSession()->setError($firstError ?? Craft::t('kickback', 'registration.message.userCreateFailed'));
             return null;
         }
 

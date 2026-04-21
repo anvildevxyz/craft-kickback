@@ -75,7 +75,7 @@ class CommissionsController extends Controller
         return $this->handleStatusAction(
             'approveCommission',
             Craft::t('kickback', 'Commission approved.'),
-            Craft::t('kickback', 'Couldn\'t approve commission.'),
+            Craft::t('kickback', 'commission.message.approveFailed'),
         );
     }
 
@@ -84,7 +84,7 @@ class CommissionsController extends Controller
         return $this->handleStatusAction(
             'rejectCommission',
             Craft::t('kickback', 'Commission rejected.'),
-            Craft::t('kickback', 'Couldn\'t reject commission.'),
+            Craft::t('kickback', 'commission.message.rejectFailed'),
         );
     }
 
@@ -93,7 +93,7 @@ class CommissionsController extends Controller
         return $this->handleStatusAction(
             'reverseCommission',
             Craft::t('kickback', 'Commission reversed.'),
-            Craft::t('kickback', 'Couldn\'t reverse commission.'),
+            Craft::t('kickback', 'commission.message.reverseFailed'),
         );
     }
 

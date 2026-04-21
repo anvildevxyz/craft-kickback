@@ -123,7 +123,7 @@
             {% elseif affiliate %}
                 {{ forms.field({
                     label: 'common.status'|t('kickback'),
-                    instructions: 'You don’t have permission to change this status.'|t('kickback'),
+                    instructions: 'affiliate.hint.statusPermission'|t('kickback'),
                 }, '<span class="status ' ~ affiliate.statusColor ~ '"></span>' ~ (affiliate.affiliateStatus|t('kickback')|capitalize))|raw }}
             {% endif %}
 
@@ -194,7 +194,7 @@
                         {{ hiddenInput('affiliateId', affiliate.id) }}
                         <div class="buttons">
                             <button type="submit" class="btn submit">
-                                {{ 'Create payout ({amount})'|t('kickback', {
+                                {{ 'payout.action.createWithAmount'|t('kickback', {
                                     amount: affiliate.pendingBalance|currency(currencyCode),
                                 }) }}
                             </button>
@@ -202,7 +202,7 @@
                     </form>
                 {% else %}
                     <p class="light">
-                        {{ 'Below minimum payout ({min} required)'|t('kickback', {
+                        {{ 'payout.field.belowMinimum'|t('kickback', {
                             min: settings.minimumPayoutAmount|currency(currencyCode),
                         }) }}
                     </p>
@@ -242,7 +242,7 @@
                                 {% set atMax = coupon.maxUses is not null and coupon.uses >= coupon.maxUses %}
                                 <tr>
                                     <td>
-                                        <input type="checkbox" name="couponIds[]" value="{{ coupon.id }}" class="kb-coupon-check" aria-label="{{ 'Select {code}'|t('kickback', { code: coupon.code }) }}">
+                                        <input type="checkbox" name="couponIds[]" value="{{ coupon.id }}" class="kb-coupon-check" aria-label="{{ 'coupon.action.select'|t('kickback', { code: coupon.code }) }}">
                                     </td>
                                     <td>
                                         <code>{{ coupon.code }}</code>
@@ -273,14 +273,14 @@
                                                 type="submit"
                                                 form="kb-coupon-delete-{{ coupon.id }}"
                                                 class="btn small"
-                                                data-confirm="{{ 'Delete coupon {code}? This cannot be undone.'|t('kickback', { code: coupon.code }) }}"
+                                                data-confirm="{{ 'coupon.action.confirmDelete'|t('kickback', { code: coupon.code }) }}"
                                             >{{ 'Delete'|t('kickback') }}</button>
                                         {% elseif coupon.enabled %}
                                             <button
                                                 type="submit"
                                                 form="kb-coupon-disable-{{ coupon.id }}"
                                                 class="btn small"
-                                                data-confirm="{{ 'Disable coupon {code}? It has been used {n} time(s) and cannot be hard-deleted.'|t('kickback', { code: coupon.code, n: coupon.uses }) }}"
+                                                data-confirm="{{ 'coupon.action.confirmDisable'|t('kickback', { code: coupon.code, n: coupon.uses }) }}"
                                             >{{ 'Disable'|t('kickback') }}</button>
                                         {% else %}
                                             <span class="light">-</span>

@@ -4,7 +4,7 @@
 
 {% block content %}
     <h1 style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">{{ 'Application Update'|t('kickback') }}</h1>
-    <p style="margin: 0 0 16px; font-size: 15px;">{{ 'Hi {name},'|t('kickback', { name: name }) }}</p>
-    <p style="margin: 0 0 16px; font-size: 15px;">{{ 'We\'ve reviewed your affiliate application and unfortunately we\'re unable to approve it at this time.'|t('kickback') }}</p>
+    <p style="margin: 0 0 16px; font-size: 15px;">{{ 'email.greeting'|t('kickback', { name: name }) }}</p>
+    <p style="margin: 0 0 16px; font-size: 15px;">{{ 'email.rejection.body'|t('kickback') }}</p>
     <p style="margin: 0; font-size: 15px;">{{ 'If you have questions, please contact us.'|t('kickback') }}</p>
 {% endblock %}

@@ -188,7 +188,7 @@ class AffiliatesController extends Controller
         return $this->handleStatusAction(
             'suspendAffiliate',
             Craft::t('kickback', 'Affiliate suspended.'),
-            Craft::t('kickback', 'Couldn\'t suspend affiliate.'),
+            Craft::t('kickback', 'affiliate.message.suspendFailed'),
         );
     }
 
@@ -197,7 +197,7 @@ class AffiliatesController extends Controller
         return $this->handleStatusAction(
             'reactivateAffiliate',
             Craft::t('kickback', 'Affiliate reactivated.'),
-            Craft::t('kickback', 'Couldn\'t reactivate affiliate.'),
+            Craft::t('kickback', 'affiliate.message.reactivateFailed'),
         );
     }
 
@@ -316,7 +316,7 @@ class AffiliatesController extends Controller
         if (KickBack::getInstance()->coupons->disableCoupon($couponId)) {
             Craft::$app->getSession()->setNotice(Craft::t('kickback', 'Coupon disabled.'));
         } else {
-            Craft::$app->getSession()->setError(Craft::t('kickback', 'Couldn\'t disable coupon.'));
+            Craft::$app->getSession()->setError(Craft::t('kickback', 'coupon.message.disableFailed'));
         }
 
         return $this->redirectToPostedUrl();
@@ -361,9 +361,9 @@ class AffiliatesController extends Controller
             }
         }
 
-        $verb = $mode === 'disable' ? 'disabled' : 'deleted';
         if ($okCount > 0) {
-            Craft::$app->getSession()->setNotice(Craft::t('kickback', "{count} coupon(s) {$verb}.", [
+            $key = $mode === 'disable' ? 'coupon.message.bulkDisabled' : 'coupon.message.bulkDeleted';
+            Craft::$app->getSession()->setNotice(Craft::t('kickback', $key, [
                 'count' => $okCount,
             ]));
         }

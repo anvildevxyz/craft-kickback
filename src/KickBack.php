@@ -501,7 +501,7 @@ class KickBack extends Plugin
         Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_SCHEMA_COMPONENTS, function(RegisterGqlSchemaComponentsEvent $event) {
             $scopes = [];
             foreach (['affiliates', 'affiliateGroups', 'programs', 'commissionRules', 'referrals', 'commissions', 'payouts'] as $type) {
-                $scopes["kickback.{$type}:read"] = ['label' => Craft::t('kickback', 'Query ' . strtolower(preg_replace('/([A-Z])/', ' $1', $type)))];
+                $scopes["kickback.{$type}:read"] = ['label' => Craft::t('kickback', 'debug.query' . strtolower(preg_replace('/([A-Z])/', ' $1', $type)))];
             }
             $event->queries[Craft::t('kickback', 'plugin.name')] = $scopes;
         });

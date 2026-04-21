@@ -321,7 +321,7 @@ class PortalController extends Controller
             if ($coupon === null) {
                 $transaction->rollBack();
                 Craft::$app->getSession()->setError(
-                    Craft::t('kickback', 'Couldn\'t create coupon. Please try again.')
+                    Craft::t('kickback', 'coupon.message.createFailed')
                 );
                 return $this->redirect($couponsUrl);
             }
@@ -377,7 +377,7 @@ class PortalController extends Controller
         if (empty($affiliate->stripeAccountId)) {
             $accountId = $stripeGateway->createConnectedAccount($affiliate);
             if ($accountId === null) {
-                Craft::$app->getSession()->setError(Craft::t('kickback', 'Couldn\'t create Stripe account. Please try again.'));
+                Craft::$app->getSession()->setError(Craft::t('kickback', 'portal.stripe.message.accountCreateFailed'));
                 return $this->redirect($portalPath . '/settings');
             }
 
@@ -396,7 +396,7 @@ class PortalController extends Controller
         );
 
         if ($onboardingUrl === null) {
-            Craft::$app->getSession()->setError(Craft::t('kickback', 'Couldn\'t generate Stripe onboarding link. Please try again.'));
+            Craft::$app->getSession()->setError(Craft::t('kickback', 'portal.stripe.message.onboardingFailed'));
             return $this->redirect($portalPath . '/settings');
         }
 
@@ -460,7 +460,7 @@ class PortalController extends Controller
 
         if ($payout === null) {
             Craft::$app->getSession()->setError(
-                Craft::t('kickback', 'Couldn\'t create payout request. Please try again.')
+                Craft::t('kickback', 'portal.message.payoutRequestFailed')
             );
         } else {
             Craft::$app->getSession()->setNotice(

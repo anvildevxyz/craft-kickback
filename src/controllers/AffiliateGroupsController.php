@@ -98,7 +98,7 @@ class AffiliateGroupsController extends Controller
         if (Craft::$app->getElements()->deleteElementById($groupId)) {
             Craft::$app->getSession()->setNotice(Craft::t('kickback', 'Affiliate group deleted.'));
         } else {
-            Craft::$app->getSession()->setError(Craft::t('kickback', 'Couldn\'t delete affiliate group.'));
+            Craft::$app->getSession()->setError(Craft::t('kickback', 'group.message.deleteFailed'));
         }
 
         return $this->redirect('kickback/affiliate-groups');

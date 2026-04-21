@@ -116,7 +116,7 @@ class CommissionRulesController extends Controller
         if (Craft::$app->getElements()->deleteElementById($ruleId)) {
             Craft::$app->getSession()->setNotice(Craft::t('kickback', 'Commission rule deleted.'));
         } else {
-            Craft::$app->getSession()->setError(Craft::t('kickback', 'Couldn\'t delete commission rule.'));
+            Craft::$app->getSession()->setError(Craft::t('kickback', 'rule.message.deleteFailed'));
         }
 
         return $this->redirect('kickback/commission-rules');

@@ -170,17 +170,17 @@ class KickBack extends Plugin
         $subnav = ['dashboard' => ['label' => Craft::t('kickback', 'nav.dashboard'), 'url' => 'kickback']];
 
         foreach ([
-            ['affiliates', 'Affiliates', 'kickback/affiliates', self::PERMISSION_MANAGE_AFFILIATES],
-            ['referrals', 'Referrals', 'kickback/referrals', self::PERMISSION_MANAGE_REFERRALS],
-            ['fraud', 'Fraud Detection', 'kickback/fraud', self::PERMISSION_MANAGE_REFERRALS],
-            ['commissions', 'Commissions', 'kickback/commissions', self::PERMISSION_MANAGE_COMMISSIONS],
-            ['commission-rules', 'Commission Rules', 'kickback/commission-rules', self::PERMISSION_MANAGE_COMMISSIONS],
-            ['affiliate-groups', 'Affiliate Groups', 'kickback/affiliate-groups', self::PERMISSION_MANAGE_AFFILIATES],
-            ['payouts', 'Payouts', 'kickback/payouts', self::PERMISSION_MANAGE_PAYOUTS],
-            ['approvals', 'Verifications', 'kickback/approvals', self::PERMISSION_VERIFY_PAYOUTS],
-            ['programs', 'Programs', 'kickback/programs', self::PERMISSION_MANAGE_PROGRAMS],
-            ['reports', 'Reports', 'kickback/reports', self::PERMISSION_VIEW_REPORTS],
-            ['settings', 'Settings', 'kickback/settings', self::PERMISSION_MANAGE_SETTINGS],
+            ['affiliates', 'nav.affiliates', 'kickback/affiliates', self::PERMISSION_MANAGE_AFFILIATES],
+            ['referrals', 'nav.referrals', 'kickback/referrals', self::PERMISSION_MANAGE_REFERRALS],
+            ['fraud', 'nav.fraud', 'kickback/fraud', self::PERMISSION_MANAGE_REFERRALS],
+            ['commissions', 'nav.commissions', 'kickback/commissions', self::PERMISSION_MANAGE_COMMISSIONS],
+            ['commission-rules', 'nav.commissionRules', 'kickback/commission-rules', self::PERMISSION_MANAGE_COMMISSIONS],
+            ['affiliate-groups', 'nav.affiliateGroups', 'kickback/affiliate-groups', self::PERMISSION_MANAGE_AFFILIATES],
+            ['payouts', 'nav.payouts', 'kickback/payouts', self::PERMISSION_MANAGE_PAYOUTS],
+            ['approvals', 'nav.approvals', 'kickback/approvals', self::PERMISSION_VERIFY_PAYOUTS],
+            ['programs', 'nav.programs', 'kickback/programs', self::PERMISSION_MANAGE_PROGRAMS],
+            ['reports', 'nav.reports', 'kickback/reports', self::PERMISSION_VIEW_REPORTS],
+            ['settings', 'nav.settings', 'kickback/settings', self::PERMISSION_MANAGE_SETTINGS],
         ] as [$key, $label, $url, $permission]) {
             if ($user->checkPermission($permission)) {
                 $subnav[$key] = ['label' => Craft::t('kickback', $label), 'url' => $url];
@@ -188,8 +188,8 @@ class KickBack extends Plugin
         }
 
         foreach ([
-            [self::PERMISSION_APPROVE_REFERRALS, ['referrals' => 'Referrals', 'fraud' => 'Fraud Detection']],
-            [self::PERMISSION_APPROVE_COMMISSIONS, ['commissions' => 'Commissions']],
+            [self::PERMISSION_APPROVE_REFERRALS, ['referrals' => 'nav.referrals', 'fraud' => 'nav.fraud']],
+            [self::PERMISSION_APPROVE_COMMISSIONS, ['commissions' => 'nav.commissions']],
         ] as [$perm, $items]) {
             if ($user->checkPermission($perm)) {
                 foreach ($items as $key => $label) {

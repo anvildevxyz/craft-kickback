@@ -1,0 +1,352 @@
+{% extends '_layouts/cp' %}
+{% set title = 'Kickback' %}
+{% set selectedSubnavItem = 'dashboard' %}
+
+{% set currency = craft.kickback.currency %}
+
+{# ── SVG icon macros ── #}
+{% macro iconUsers() %}
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+{% endmacro %}
+{% macro iconCursor() %}
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l7.07 17 2.51-7.39L21 11.07z"/><path d="M15 15l5 5"/></svg>
+{% endmacro %}
+{% macro iconShare() %}
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+{% endmacro %}
+{% macro iconDollar() %}
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+{% endmacro %}
+{% macro iconClock() %}
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+{% endmacro %}
+{% macro iconUserPlus() %}
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+{% endmacro %}
+{% macro iconAlert() %}
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+{% endmacro %}
+
+{% block content %}
+    {% do view.registerAssetBundle('anvildev\\craftkickback\\assets\\cp\\CpAssetBundle') %}
+    {% do view.registerJsFile('https://cdn.jsdelivr.net/npm/chart.js') %}
+
+    <div class="kb-dashboard">
+
+        {# ── Alert Banners ──────────────────────────── #}
+        {% if pendingCount > 0 or stats.flaggedReferrals > 0 %}
+            <div class="kb-alerts">
+                {% if pendingCount > 0 %}
+                    <div class="kb-alert kb-alert--pending">
+                        <div class="kb-alert__icon">{{ _self.iconUserPlus() }}</div>
+                        <div class="kb-alert__body">
+                            <p class="kb-alert__title">{{ pendingCount }} {{ 'Pending Affiliate'|t('kickback') }}{{ pendingCount > 1 ? 's' }}</p>
+                            <p class="kb-alert__desc">{{ 'Affiliates awaiting your approval.'|t('kickback') }}</p>
+                        </div>
+                        <a href="{{ cpUrl('kickback/affiliates', { source: 'status:pending' }) }}" class="btn small kb-alert__action">{{ 'common.review'|t('kickback') }}</a>
+                    </div>
+                {% endif %}
+                {% if stats.flaggedReferrals > 0 %}
+                    <div class="kb-alert kb-alert--fraud">
+                        <div class="kb-alert__icon">{{ _self.iconAlert() }}</div>
+                        <div class="kb-alert__body">
+                            <p class="kb-alert__title">{{ stats.flaggedReferrals }} {{ 'Flagged Referral'|t('kickback') }}{{ stats.flaggedReferrals > 1 ? 's' }}</p>
+                            <p class="kb-alert__desc">{{ 'Fraud detection flagged referrals that need review.'|t('kickback') }}</p>
+                        </div>
+                        <a href="{{ cpUrl('kickback/fraud') }}" class="btn small kb-alert__action">{{ 'common.review'|t('kickback') }}</a>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        {# ── Metric Cards ───────────────────────────── #}
+        <div class="kb-metrics">
+            <a href="{{ cpUrl('kickback/affiliates', { source: 'status:active' }) }}" class="kb-metric kb-metric--teal">
+                <div class="kb-metric__header">
+                    <span class="kb-metric__label">{{ 'dashboard.activeAffiliates'|t('kickback') }}</span>
+                    <span class="kb-metric__icon">{{ _self.iconUsers() }}</span>
+                </div>
+                <div class="kb-metric__value">{{ stats.activeAffiliates }}</div>
+                <div class="kb-metric__sub">{{ stats.totalAffiliates }} {{ 'total'|t('app') }}</div>
+            </a>
+
+            <a href="{{ cpUrl('kickback/reports') }}" class="kb-metric kb-metric--blue">
+                <div class="kb-metric__header">
+                    <span class="kb-metric__label">{{ 'dashboard.totalClicks'|t('kickback') }}</span>
+                    <span class="kb-metric__icon">{{ _self.iconCursor() }}</span>
+                </div>
+                <div class="kb-metric__value">{{ stats.totalClicks|number_format }}</div>
+                <div class="kb-metric__sub">{{ stats.conversionRate }}% {{ 'conversion'|t('kickback') }}</div>
+            </a>
+
+            <a href="{{ cpUrl('kickback/referrals') }}" class="kb-metric kb-metric--violet">
+                <div class="kb-metric__header">
+                    <span class="kb-metric__label">{{ 'dashboard.totalReferrals'|t('kickback') }}</span>
+                    <span class="kb-metric__icon">{{ _self.iconShare() }}</span>
+                </div>
+                <div class="kb-metric__value">{{ stats.totalReferrals|number_format }}</div>
+            </a>
+
+            <a href="{{ cpUrl('kickback/commissions') }}" class="kb-metric kb-metric--emerald">
+                <div class="kb-metric__header">
+                    <span class="kb-metric__label">{{ 'dashboard.totalCommissions'|t('kickback') }}</span>
+                    <span class="kb-metric__icon">{{ _self.iconDollar() }}</span>
+                </div>
+                <div class="kb-metric__value">{{ stats.totalCommissions|currency(currency) }}</div>
+                <div class="kb-metric__sub">{{ stats.approvedCommissions|currency(currency) }} {{ 'approved'|t('kickback') }}</div>
+            </a>
+
+            <a href="{{ cpUrl('kickback/commissions', { source: 'status:pending' }) }}" class="kb-metric kb-metric--amber">
+                <div class="kb-metric__header">
+                    <span class="kb-metric__label">{{ 'dashboard.pendingCommissions'|t('kickback') }}</span>
+                    <span class="kb-metric__icon">{{ _self.iconClock() }}</span>
+                </div>
+                <div class="kb-metric__value">{{ stats.pendingCommissions|currency(currency) }}</div>
+            </a>
+        </div>
+
+        {# ── Commission Trend Chart ─────────────────── #}
+        <div class="kb-chart-wrap">
+            <div class="kb-chart-header">
+                <h2 class="kb-chart-title">{{ 'Commission Trend'|t('kickback') }}</h2>
+                <span class="kb-chart-period">{{ 'Last 30 Days'|t('kickback') }}</span>
+            </div>
+            <div class="kb-chart-container">
+                <canvas id="kb-commissions-chart"></canvas>
+            </div>
+        </div>
+
+        {% js %}
+            (function() {
+                var data = {{ dailyCommissions|json_encode|raw }};
+                var isDark = document.documentElement.dataset.colorScheme === 'dark';
+
+                var canvas = document.getElementById('kb-commissions-chart');
+                var ctx = canvas.getContext('2d');
+
+                var gradient = ctx.createLinearGradient(0, 0, 0, 260);
+                gradient.addColorStop(0, isDark ? 'rgba(5, 150, 105, 0.2)' : 'rgba(5, 150, 105, 0.15)');
+                gradient.addColorStop(1, 'rgba(5, 150, 105, 0.01)');
+
+                var gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
+                var tickColor = isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)';
+
+                new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: data.map(function(d) { return d.date; }),
+                        datasets: [{
+                            label: '{{ "Commissions"|t("kickback") }}',
+                            data: data.map(function(d) { return parseFloat(d.total); }),
+                            borderColor: '#059669',
+                            borderWidth: 2,
+                            backgroundColor: gradient,
+                            fill: true,
+                            tension: 0.35,
+                            pointRadius: 0,
+                            pointHoverRadius: 5,
+                            pointHoverBackgroundColor: '#059669',
+                            pointHoverBorderColor: isDark ? '#1e293b' : '#fff',
+                            pointHoverBorderWidth: 2,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { intersect: false, mode: 'index' },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: isDark ? '#334155' : '#1e293b',
+                                titleColor: '#e2e8f0',
+                                bodyColor: '#e2e8f0',
+                                titleFont: { weight: '600', size: 12 },
+                                bodyFont: { weight: '500', size: 13 },
+                                padding: { x: 12, y: 8 },
+                                cornerRadius: 6,
+                                displayColors: false,
+                                callbacks: {
+                                    title: function(ctx) {
+                                        var d = new Date(ctx[0].label + 'T00:00:00');
+                                        return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+                                    },
+                                    label: function(ctx) {
+                                        return '{{ currency }} ' + ctx.parsed.y.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                border: { display: false },
+                                ticks: {
+                                    color: tickColor,
+                                    font: { size: 10.5 },
+                                    maxRotation: 0,
+                                    maxTicksLimit: 7,
+                                    callback: function(val, i) {
+                                        var label = this.getLabelForValue(val);
+                                        var d = new Date(label + 'T00:00:00');
+                                        return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                                    }
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                border: { display: false },
+                                grid: { color: gridColor },
+                                ticks: {
+                                    color: tickColor,
+                                    font: { size: 10.5 },
+                                    padding: 8,
+                                    maxTicksLimit: 5,
+                                    callback: function(value) {
+                                        if (value === 0) return '0';
+                                        if (value >= 1000) return (value / 1000).toFixed(value % 1000 === 0 ? 0 : 1) + 'k';
+                                        return value;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            })();
+        {% endjs %}
+
+        {# ── Recent Affiliates + Recent Referrals ──── #}
+        <div class="kb-grid-2">
+            <div class="kb-section kb-section--delay-1">
+                <div class="kb-section__header">
+                    <h3 class="kb-section__title">{{ 'dashboard.recentAffiliates'|t('kickback') }}</h3>
+                    <a href="{{ cpUrl('kickback/affiliates') }}" class="kb-section__link">{{ 'View all'|t('app') }}</a>
+                </div>
+                {% if recentAffiliates|length %}
+                    <table class="kb-table">
+                        <thead>
+                            <tr>
+                                <th>{{ 'common.name'|t('kickback') }}</th>
+                                <th>{{ 'common.status'|t('kickback') }}</th>
+                                <th style="text-align: right;">{{ 'affiliate.field.earnings'|t('kickback') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for affiliate in recentAffiliates %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ affiliate.cpEditUrl }}">{{ affiliate.title }}</a>
+                                        <div class="kb-mono">{{ affiliate.referralCode }}</div>
+                                    </td>
+                                    <td>
+                                        <span class="kb-badge kb-badge--{{ affiliate.affiliateStatus }}">{{ affiliate.affiliateStatus|capitalize }}</span>
+                                    </td>
+                                    <td class="kb-numeric" style="text-align: right;">{{ affiliate.lifetimeEarnings|currency(currency) }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="kb-empty">{{ 'No affiliates yet.'|t('kickback') }}</div>
+                {% endif %}
+            </div>
+
+            <div class="kb-section kb-section--delay-2">
+                <div class="kb-section__header">
+                    <h3 class="kb-section__title">{{ 'portal.recentReferrals'|t('kickback') }}</h3>
+                    <a href="{{ cpUrl('kickback/referrals') }}" class="kb-section__link">{{ 'View all'|t('app') }}</a>
+                </div>
+                {% if recentReferrals|length %}
+                    <table class="kb-table">
+                        <thead>
+                            <tr>
+                                <th>{{ 'affiliate.one'|t('kickback') }}</th>
+                                <th style="text-align: right;">{{ 'Subtotal'|t('kickback') }}</th>
+                                <th>{{ 'common.status'|t('kickback') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for referral in recentReferrals %}
+                                {% set affiliate = affiliates[referral.affiliateId] ?? null %}
+                                <tr>
+                                    <td>
+                                        {% if affiliate %}
+                                            <a href="{{ cpUrl('kickback/affiliates/' ~ affiliate.id) }}">{{ affiliate.title }}</a>
+                                        {% else %}
+                                            <span style="opacity: 0.35;">&mdash;</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="kb-numeric" style="text-align: right;">{{ referral.orderSubtotal|currency(currency) }}</td>
+                                    <td>
+                                        <span class="kb-badge kb-badge--{{ referral.status }}">{{ referral.status|capitalize }}</span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="kb-empty">{{ 'portal.emptyReferrals'|t('kickback') }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        {# ── Recent Commissions (full width) ────────── #}
+        <div class="kb-section kb-section--delay-3" style="margin-block-end: 0.75rem;">
+            <div class="kb-section__header">
+                <h3 class="kb-section__title">{{ 'portal.recentCommissions'|t('kickback') }}</h3>
+                <a href="{{ cpUrl('kickback/commissions') }}" class="kb-section__link">{{ 'View all'|t('app') }}</a>
+            </div>
+            {% if recentCommissions|length %}
+                <table class="kb-table">
+                    <thead>
+                        <tr>
+                            <th>{{ 'common.id'|t('kickback') }}</th>
+                            <th>{{ 'affiliate.one'|t('kickback') }}</th>
+                            <th style="text-align: right;">{{ 'common.amount'|t('kickback') }}</th>
+                            <th>{{ 'common.rate'|t('kickback') }}</th>
+                            <th>{{ 'Rule'|t('kickback') }}</th>
+                            <th>{{ 'common.status'|t('kickback') }}</th>
+                            <th>{{ 'common.date'|t('kickback') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for commission in recentCommissions %}
+                            {% set affiliate = affiliates[commission.affiliateId] ?? null %}
+                            <tr>
+                                <td class="kb-mono">#{{ commission.id }}</td>
+                                <td>
+                                    {% if affiliate %}
+                                        <a href="{{ cpUrl('kickback/affiliates/' ~ affiliate.id) }}">{{ affiliate.title }}</a>
+                                    {% else %}
+                                        <span style="opacity: 0.35;">&mdash;</span>
+                                    {% endif %}
+                                </td>
+                                <td class="kb-numeric" style="text-align: right;">{{ commission.amount|currency(commission.currency) }}</td>
+                                <td class="kb-numeric">
+                                    {% if commission.rateType == 'percentage' %}
+                                        {{ commission.rate }}%
+                                    {% else %}
+                                        {{ commission.rate|currency(commission.currency) }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if commission.ruleApplied %}
+                                        <span class="kb-mono">{{ commission.ruleApplied }}</span>
+                                    {% else %}
+                                        <span style="opacity: 0.35;">&mdash;</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="kb-badge kb-badge--{{ commission.status }}">{{ commission.status|capitalize }}</span>
+                                </td>
+                                <td style="opacity: 0.55;">{{ commission.dateCreated|date('short') }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="kb-empty">{{ 'portal.emptyCommissions'|t('kickback') }}</div>
+            {% endif %}
+        </div>
+
+    </div>
+{% endblock %}

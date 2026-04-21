@@ -1,0 +1,88 @@
+{% extends "kickback/portal/_layout" %}
+{% set portalBase = '/' ~ settings.currentSitePortalPath %}
+
+{% set activeNav = 'commissions' %}
+
+{% block title %}Commissions{% endblock %}
+
+{% block content %}
+    <h1>Commissions</h1>
+
+    <div class="kb-filter-bar">
+        <a href="{{ portalBase }}/commissions" class="kb-filter-pill {{ currentStatus is null ? 'kb-filter-active' }}">All</a>
+        {% for status in statuses %}
+            <a href="{{ portalBase }}/commissions?status={{ status }}" class="kb-filter-pill {{ currentStatus == status ? 'kb-filter-active' }}">{{ status|capitalize }}</a>
+        {% endfor %}
+    </div>
+
+    <div class="kb-table-wrap">
+        {% if commissions|length > 0 %}
+            <table class="kb-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Rate</th>
+                        <th>Rule</th>
+                        {% if max(commissions|column('tier')) > 1 %}
+                            <th>Tier</th>
+                        {% endif %}
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set showTier = max(commissions|column('tier')) > 1 %}
+                    {% for commission in commissions %}
+                        <tr>
+                            <td>#{{ commission.id }}</td>
+                            <td>{{ commission.dateCreated|date('M j, Y') }}</td>
+                            <td>{{ commission.amount|currency(craft.kickback.currency) }}</td>
+                            <td>
+                                {% if commission.rateType == 'percentage' %}
+                                    {{ commission.rate }}%
+                                {% else %}
+                                    {{ commission.rate|currency(craft.kickback.currency) }}
+                                {% endif %}
+                            </td>
+                            <td>{% if commission.ruleApplied %}<code class="kb-code-pill">{{ commission.ruleApplied }}</code>{% else %}<span class="kb-muted">-</span>{% endif %}</td>
+                            {% if showTier %}
+                                <td>{{ commission.tier }}</td>
+                            {% endif %}
+                            <td><span class="kb-badge kb-badge-{{ commission.status }}">{{ commission.status|capitalize }}</span></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% if totalPages > 1 %}
+                {% set baseParams = {} %}
+                {% if currentStatus %}{% set baseParams = baseParams|merge({status: currentStatus}) %}{% endif %}
+
+                <div class="kb-pagination">
+                    <span>Showing {{ (currentPage - 1) * 25 + 1 }}–{{ min(currentPage * 25, totalCount) }} of {{ totalCount }}</span>
+                    <div class="kb-pagination__pages">
+                        {% if currentPage > 1 %}
+                            <a href="{{ portalBase }}/commissions?{{ baseParams|merge({page: currentPage - 1})|url_encode }}">←</a>
+                        {% endif %}
+                        {% for p in max(1, currentPage - 2)..min(totalPages, currentPage + 2) %}
+                            {% if p == currentPage %}
+                                <span class="kb-pagination__current">{{ p }}</span>
+                            {% else %}
+                                <a href="{{ portalBase }}/commissions?{{ baseParams|merge({page: p})|url_encode }}">{{ p }}</a>
+                            {% endif %}
+                        {% endfor %}
+                        {% if currentPage < totalPages %}
+                            <a href="{{ portalBase }}/commissions?{{ baseParams|merge({page: currentPage + 1})|url_encode }}">→</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="kb-empty">
+                <p>No commissions yet.</p>
+                <p class="kb-empty__subtitle">Commissions are generated when your referrals make qualifying purchases.</p>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

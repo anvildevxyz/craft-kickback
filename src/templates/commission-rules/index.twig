@@ -1,0 +1,12 @@
+{% extends '_layouts/elementindex' %}
+{% set title = 'nav.commissionRules'|t('kickback') %}
+{% set selectedSubnavItem = 'commission-rules' %}
+{% set elementType = 'anvildev\\craftkickback\\elements\\CommissionRuleElement' %}
+
+{% block actionButton %}
+    {% if currentUser.can('kickback-manageCommissions') %}
+        <a href="{{ url('kickback/commission-rules/new') }}" class="btn submit add icon">
+            {{ 'rule.newLong'|t('kickback') }}
+        </a>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends "kickback/portal/_layout" %}
+{% set portalBase = '/' ~ settings.currentSitePortalPath %}
+
+{% set activeNav = 'settings' %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+    <h1>Settings</h1>
+
+    <div class="kb-table-wrap" style="margin-bottom: 2rem;">
+        <div class="kb-table-header">Request Payout</div>
+        <div style="padding: 1.25rem;">
+            <p style="font-size: 0.875rem; color: #333; margin-bottom: 0.75rem;">
+                Current balance: <strong>{{ affiliate.pendingBalance|currency(currency) }}</strong>
+                &middot; Minimum payout: <strong>{{ settings.minimumPayoutAmount|currency(currency) }}</strong>
+            </p>
+            {% if affiliate.pendingBalance >= settings.minimumPayoutAmount %}
+                <form method="post">
+                    {{ csrfInput() }}
+                    {{ actionInput('kickback/portal/request-payout') }}
+                    {{ redirectInput(portalBase ~ '/settings') }}
+
+                    <div class="kb-form-group">
+                        <label for="kb-payout-notes">Notes (optional)</label>
+                        <input type="text" name="notes" id="kb-payout-notes" placeholder="Any notes for this payout request">
+                    </div>
+
+                    <button type="submit" class="kb-btn kb-btn-primary">Request Payout</button>
+                </form>
+            {% else %}
+                <p style="font-size: 0.8125rem; color: #888;">Your balance hasn't reached the minimum payout threshold yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="kb-table-wrap">
+        <div class="kb-table-header">Payout Settings</div>
+        <div style="padding: 1.25rem;">
+            <form method="post">
+                {{ csrfInput() }}
+                {{ actionInput('kickback/portal/save-settings') }}
+                {{ redirectInput(portalBase ~ '/settings') }}
+
+                <div class="kb-form-group">
+                    <label for="kb-payout-method">Payout Method</label>
+                    <select name="payoutMethod" id="kb-payout-method" onchange="kbTogglePaypal()">
+                        <option value="manual" {{ affiliate.payoutMethod == 'manual' ? 'selected' }}>Manual</option>
+                        <option value="paypal" {{ affiliate.payoutMethod == 'paypal' ? 'selected' }}>PayPal</option>
+                        <option value="stripe" {{ affiliate.payoutMethod == 'stripe' ? 'selected' }}>Stripe</option>
+                    </select>
+                </div>
+
+                <div class="kb-form-group" id="kb-paypal-group"{% if affiliate.payoutMethod != 'paypal' %} style="display: none;"{% endif %}>
+                    <label for="kb-paypal-email">PayPal Email</label>
+                    <input type="email" name="paypalEmail" id="kb-paypal-email" value="{{ affiliate.paypalEmail }}" placeholder="you@example.com">
+                    <p class="kb-form-help">The PayPal email address where payouts will be sent.</p>
+                </div>
+
+                <div class="kb-form-group" id="kb-stripe-group"{% if affiliate.payoutMethod != 'stripe' %} style="display: none;"{% endif %}>
+                    {% if stripeConfigured is defined and stripeConfigured %}
+                        {% if stripeReady is defined and stripeReady %}
+                            <div style="padding: 0.75rem; background: #f0faf0; border: 1px solid #c5e8c5; border-radius: 4px; margin-bottom: 0.5rem;">
+                                <span style="color: #2d8c2d;">&#10003;</span> Your Stripe account is connected and ready to receive payouts.
+                            </div>
+                        {% elseif affiliate.stripeAccountId %}
+                            <p class="kb-form-help">Your Stripe account setup is incomplete.</p>
+                        {% else %}
+                            <p class="kb-form-help">Connect a Stripe account to receive payouts directly.</p>
+                        {% endif %}
+                    {% else %}
+                        <p class="kb-form-help" style="color: #888;">Stripe payouts are not currently available.</p>
+                    {% endif %}
+                </div>
+
+                <div class="kb-form-group">
+                    <label for="kb-payout-threshold">Payout Threshold ({{ craft.kickback.currency }})</label>
+                    <input type="number" name="payoutThreshold" id="kb-payout-threshold" value="{{ affiliate.payoutThreshold }}" min="0" step="0.01">
+                    <p class="kb-form-help">Minimum balance required before a payout is issued.</p>
+                </div>
+
+                <button type="submit" class="kb-btn kb-btn-primary">Save Settings</button>
+            </form>
+
+            {# Stripe onboarding actions live OUTSIDE the outer payout-settings form - nested forms are invalid HTML. #}
+            {% if affiliate.payoutMethod == 'stripe' and stripeConfigured is defined and stripeConfigured and not (stripeReady is defined and stripeReady) %}
+                {% if affiliate.stripeAccountId %}
+                    <form method="post" style="margin-top: 1rem;">
+                        {{ csrfInput() }}
+                        {{ actionInput('kickback/portal/stripe-onboard') }}
+                        <button type="submit" class="kb-btn kb-btn-secondary">Complete Stripe Setup</button>
+                    </form>
+                {% else %}
+                    <form method="post" style="margin-top: 0.5rem;">
+                        {{ csrfInput() }}
+                        {{ actionInput('kickback/portal/stripe-onboard') }}
+                        <button type="submit" class="kb-btn kb-btn-secondary">Connect Stripe Account</button>
+                    </form>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        function kbTogglePaypal() {
+            var method = document.getElementById('kb-payout-method').value;
+            var paypalGroup = document.getElementById('kb-paypal-group');
+            var stripeGroup = document.getElementById('kb-stripe-group');
+            paypalGroup.style.display = method === 'paypal' ? '' : 'none';
+            stripeGroup.style.display = method === 'stripe' ? '' : 'none';
+        }
+    </script>
+{% endblock %}

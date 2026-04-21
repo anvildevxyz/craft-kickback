@@ -1,0 +1,65 @@
+{#
+ # Status badge and filter macros for the Kickback CP.
+ #
+ # Usage:
+ #   {% import 'kickback/_macros/status' as status %}
+ #   {{ status.badge('approved', 'commission') }}
+ #   {{ status.filterBar('kickback/commissions', currentStatus, ['pending', 'approved', 'rejected', 'reversed']) }}
+ #}
+
+{#
+ # Render a Craft-style status indicator dot + capitalized label.
+ #
+ # @param string statusValue  The raw status string (e.g. 'pending')
+ # @param string entityType   One of: commission, referral, payout, affiliate
+ #}
+{% macro badge(statusValue, entityType) %}
+    {%- set colors = {
+        commission: {
+            pending: 'orange',
+            approved: 'green',
+            paid: 'blue',
+            rejected: 'red',
+            reversed: 'red',
+        },
+        referral: {
+            pending: 'orange',
+            approved: 'green',
+            flagged: 'orange',
+            rejected: 'red',
+            paid: 'blue',
+        },
+        payout: {
+            pending: 'orange',
+            processing: 'blue',
+            completed: 'green',
+            failed: 'red',
+            rejected: 'red',
+            reversed: 'purple',
+        },
+        affiliate: {
+            active: 'green',
+            pending: 'orange',
+            suspended: 'red',
+            rejected: 'red',
+        },
+    } -%}
+    {%- set map = colors[entityType] ?? {} -%}
+    <span class="status {{ map[statusValue] ?? '' }}"></span>{{ statusValue|capitalize }}
+{%- endmacro %}
+
+{#
+ # Render a row of status filter pill buttons (CP admin style).
+ #
+ # @param string baseUrl        The base URL without status param (e.g. 'kickback/commissions')
+ # @param string|null current   The currently active status filter
+ # @param string[] statuses     List of status values to show as buttons
+ #}
+{% macro filterBar(baseUrl, current, statuses) %}
+    <div class="flex" style="gap: 0.5rem; margin-bottom: 1rem;">
+        <a href="{{ url(baseUrl) }}" class="btn {{ current is null ? 'active' : '' }}">{{ 'All'|t('app') }}</a>
+        {% for s in statuses %}
+            <a href="{{ url(baseUrl, {status: s}) }}" class="btn {{ current == s ? 'active' : '' }}">{{ s|capitalize|t('kickback') }}</a>
+        {% endfor %}
+    </div>
+{% endmacro %}

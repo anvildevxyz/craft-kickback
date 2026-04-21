@@ -1,0 +1,12 @@
+{% extends '_layouts/elementindex' %}
+{% set title = 'nav.payouts'|t('kickback') %}
+{% set selectedSubnavItem = 'payouts' %}
+{% set elementType = 'anvildev\\craftkickback\\elements\\PayoutElement' %}
+
+{% block actionButton %}
+    {% if currentUser.can('kickback-processPayouts') %}
+        <a href="{{ url('kickback/payouts/batch') }}" class="btn submit" data-icon="gears">
+            {{ 'Run batch payouts'|t('kickback') }}
+        </a>
+    {% endif %}
+{% endblock %}

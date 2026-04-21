@@ -1,0 +1,302 @@
+{% extends '_layouts/cp' %}
+{% import 'kickback/_macros/status' as status %}
+
+{% set title = 'Payout #' ~ payout.id %}
+{% set selectedSubnavItem = 'payouts' %}
+{% set crumbs = [
+    { label: 'nav.payouts'|t('kickback'), url: url('kickback/payouts') },
+] %}
+
+{# Load approval + verification gate once - both the sidebar and the action
+   block in {% block content %} reference these. #}
+{% set kickbackPlugin = craft.app.plugins.getPlugin('kickback') %}
+{% set approval = kickbackPlugin.approvals.getFor('payout', payout.id) %}
+{% set verificationRequired = kickbackPlugin.settings.requirePayoutVerification %}
+{% set canProcess = not verificationRequired or (approval is not null and approval.status == 'approved') %}
+
+{# ── Right-hand details sidebar ────────────────────────────── #}
+{% set details %}
+    <div class="meta read-only">
+        <div class="data">
+            <h5 class="heading">{{ 'common.status'|t('kickback') }}</h5>
+            <div class="value">{{ status.badge(payout.status, 'payout') }}</div>
+        </div>
+
+        <div class="data">
+            <h5 class="heading">{{ 'Method'|t('kickback') }}</h5>
+            <div class="value">{{ payout.method|capitalize|replace({'_': ' '}) }}</div>
+        </div>
+
+        <div class="data">
+            <h5 class="heading">{{ 'common.dateCreated'|t('kickback') }}</h5>
+            <div class="value">{{ payout.dateCreated ? payout.dateCreated|datetime('short') : '-' }}</div>
+        </div>
+
+        {% if payout.processedAt %}
+            <div class="data">
+                <h5 class="heading">{{ 'common.dateProcessed'|t('kickback') }}</h5>
+                <div class="value">{{ payout.processedAt|datetime('short') }}</div>
+            </div>
+        {% endif %}
+
+        {% if payout.transactionId %}
+            <div class="data">
+                <h5 class="heading">{{ 'common.transactionId'|t('kickback') }}</h5>
+                <div class="value"><code>{{ payout.transactionId }}</code></div>
+            </div>
+        {% endif %}
+
+        {% if payout.gatewayBatchId %}
+            <div class="data">
+                <h5 class="heading">{{ 'Gateway Batch ID'|t('kickback') }}</h5>
+                <div class="value"><code>{{ payout.gatewayBatchId }}</code></div>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if approval is not null %}
+        <div class="meta" style="padding: 14px;">
+            <h5 class="heading">{{ 'Verification'|t('kickback') }}</h5>
+
+            {% if approval.status == 'pending' %}
+                <p class="light">
+                    {{ 'Awaiting verification.'|t('kickback') }}
+                    {% if approval.requestedUserId %}
+                        {{ 'Assigned to'|t('kickback') }}:
+                        {{ craft.users.id(approval.requestedUserId).one().friendlyName ?? '-' }}
+                    {% endif %}
+                </p>
+
+                {% set isCreator = (currentUser.id == payout.createdByUserId) %}
+                {% if currentUser.can('kickback-verifyPayouts') and not isCreator %}
+                    <form method="post" style="margin-top: 8px;">
+                        {{ csrfInput() }}
+                        {{ actionInput('kickback/approvals/approve') }}
+                        {{ hiddenInput('approvalId', approval.id) }}
+                        {{ redirectInput('kickback/payouts/' ~ payout.id) }}
+                        <div class="field">
+                            <div class="input">
+                                <input type="text" name="note" class="text fullwidth" placeholder="{{ 'Optional note'|t('kickback') }}">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn submit">{{ 'Approve'|t('kickback') }}</button>
+                    </form>
+
+                    <form method="post" style="margin-top: 8px;" class="kb-reject-form" data-required-message="{{ 'A rejection reason is required.'|t('kickback')|e('html_attr') }}">
+                        {{ csrfInput() }}
+                        {{ actionInput('kickback/approvals/reject') }}
+                        {{ hiddenInput('approvalId', approval.id) }}
+                        {{ redirectInput('kickback/payouts/' ~ payout.id) }}
+                        <div class="field">
+                            <div class="input">
+                                <textarea name="note" class="text fullwidth" rows="2" placeholder="{{ 'Rejection reason (required)'|t('kickback') }}"></textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn delete">{{ 'Reject'|t('kickback') }}</button>
+                    </form>
+                {% elseif isCreator %}
+                    <p class="light" style="margin-top: 8px;">
+                        {{ 'You created this payout and cannot verify it yourself.'|t('kickback') }}
+                    </p>
+                {% endif %}
+
+            {% elseif approval.status == 'approved' %}
+                <p>
+                    <span class="status green"></span>
+                    {{ 'Verified'|t('kickback') }}
+                    {% if approval.resolvedUserId %}
+                        by {{ craft.users.id(approval.resolvedUserId).one().friendlyName ?? '-' }}
+                    {% endif %}
+                </p>
+                {% if approval.note %}
+                    <p class="light">{{ approval.note }}</p>
+                {% endif %}
+
+            {% elseif approval.status == 'rejected' %}
+                <p>
+                    <span class="status red"></span>
+                    {{ 'affiliateStatus.rejected'|t('kickback') }}
+                    {% if approval.resolvedUserId %}
+                        by {{ craft.users.id(approval.resolvedUserId).one().friendlyName ?? '-' }}
+                    {% endif %}
+                </p>
+                {% if approval.note %}
+                    <p class="light"><strong>{{ 'Reason'|t('kickback') }}:</strong> {{ approval.note }}</p>
+                {% endif %}
+            {% endif %}
+        </div>
+    {% endif %}
+{% endset %}
+
+{# ── Main content ───────────────────────────────────────────── #}
+{% block content %}
+    {% do view.registerAssetBundle('anvildev\\craftkickback\\assets\\cp\\CpAssetBundle') %}
+
+    <div id="fields">
+        <div class="field">
+            <div class="heading">
+                <label>{{ 'affiliate.one'|t('kickback') }}</label>
+            </div>
+            <div class="input">
+                {% if affiliate %}
+                    <a href="{{ url('kickback/affiliates/' ~ affiliate.id) }}">{{ affiliate.title }}</a>
+                    {% if affiliate.referralCode %}
+                        <span class="light">({{ affiliate.referralCode }})</span>
+                    {% endif %}
+                {% else %}
+                    -
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="heading">
+                <label>{{ 'common.amount'|t('kickback') }}</label>
+            </div>
+            <div class="input">
+                <strong style="font-size: 1.25em;">{{ payout.amount|currency(payout.currency) }}</strong>
+            </div>
+        </div>
+
+        {% if payout.notes %}
+            <div class="field">
+                <div class="heading">
+                    <label>{{ 'common.notes'|t('kickback') }}</label>
+                </div>
+                <div class="input">{{ payout.notes|nl2br }}</div>
+            </div>
+        {% endif %}
+    </div>
+
+    {# ── Processing banner ──────────────────────────────────── #}
+    {% if payout.status == 'processing' %}
+        <div class="pane notice" style="margin-top: 1.5rem;">
+            <p>
+                <span class="status blue"></span>
+                <strong>{{ 'payoutStatus.processing'|t('kickback') }}</strong> -
+                {{ 'This payout is being processed via {method}.'|t('kickback', {method: payout.method|capitalize}) }}
+                {% if payout.gatewayBatchId %}
+                    ({{ 'Batch'|t('kickback') }} <code>{{ payout.gatewayBatchId }}</code>)
+                {% endif %}
+            </p>
+        </div>
+    {% endif %}
+
+    {# ── Actions (pending only) ─────────────────────────────── #}
+    {% if payout.status == 'pending' and currentUser.can('kickback-processPayouts') %}
+        <hr>
+
+        {% if not canProcess %}
+            <div class="pane notice">
+                <p>
+                    <span class="status orange"></span>
+                    {{ 'This payout is awaiting verification. Actions will appear once it has been approved.'|t('kickback') }}
+                </p>
+            </div>
+        {% else %}
+        <h2>{{ 'Actions'|t('kickback') }}</h2>
+
+        {# Primary: gateway payment #}
+        {% if gatewayAvailable is defined and gatewayAvailable and payout.method in ['paypal', 'stripe'] %}
+            <div class="pane" style="margin-bottom: 1.5rem;">
+                <h3>{{ 'Send via {gateway}'|t('kickback', {gateway: gatewayName}) }}</h3>
+                <p>{{ 'Process this payout directly through the {gateway} API.'|t('kickback', {gateway: gatewayName}) }}</p>
+                <form method="post">
+                    {{ csrfInput() }}
+                    {{ actionInput('kickback/payouts/process') }}
+                    {{ redirectInput('kickback/payouts/' ~ payout.id) }}
+                    {{ hiddenInput('payoutId', payout.id) }}
+                    <button type="submit"
+                            class="btn submit kb-confirm"
+                            data-icon="paper-plane"
+                            data-message="{{ 'Send {amount} via {gateway}?'|t('kickback', {amount: payout.amount|currency(payout.currency), gateway: gatewayName})|e('html_attr') }}">
+                        {{ 'Pay via {gateway}'|t('kickback', {gateway: gatewayName}) }}
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+
+        {# Secondary: manual mark as completed #}
+        <div class="pane" style="margin-bottom: 1.5rem;">
+            <h3>{{ 'Mark as completed (manual)'|t('kickback') }}</h3>
+            <p>{{ 'Use this if you processed the payout outside the system (bank transfer, manual PayPal, etc.).'|t('kickback') }}</p>
+            <form method="post">
+                {{ csrfInput() }}
+                {{ actionInput('kickback/payouts/complete') }}
+                {{ redirectInput('kickback/payouts/' ~ payout.id) }}
+                {{ hiddenInput('payoutId', payout.id) }}
+
+                <div class="field">
+                    <div class="heading">
+                        <label for="transactionId">{{ 'common.transactionId'|t('kickback') }}</label>
+                        <div class="instructions"><p>{{ 'payout.field.transactionIdHint'|t('kickback') }}</p></div>
+                    </div>
+                    <div class="input">
+                        <input type="text"
+                               id="transactionId"
+                               name="transactionId"
+                               class="text fullwidth"
+                               placeholder="{{ 'e.g. PayPal transaction ID'|t('kickback') }}">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn submit" data-icon="check">
+                    {{ 'payout.action.markCompleted'|t('kickback') }}
+                </button>
+            </form>
+        </div>
+
+        {# Destructive: fail / cancel #}
+        <div class="pane">
+            <h3>{{ 'Cancel or mark as failed'|t('kickback') }}</h3>
+            <p>{{ 'Failing leaves the record for audit. Cancelling deletes it entirely.'|t('kickback') }}</p>
+            <div class="btngroup">
+                <form method="post">
+                    {{ csrfInput() }}
+                    {{ actionInput('kickback/payouts/fail') }}
+                    {{ redirectInput('kickback/payouts/' ~ payout.id) }}
+                    {{ hiddenInput('payoutId', payout.id) }}
+                    <button type="submit"
+                            class="btn kb-confirm"
+                            data-icon="circle-xmark"
+                            data-message="{{ 'Mark this payout as failed?'|t('kickback')|e('html_attr') }}">
+                        {{ 'payout.action.markFailed'|t('kickback') }}
+                    </button>
+                </form>
+
+                <form method="post">
+                    {{ csrfInput() }}
+                    {{ actionInput('kickback/payouts/cancel') }}
+                    {{ redirectInput('kickback/payouts') }}
+                    {{ hiddenInput('payoutId', payout.id) }}
+                    <button type="submit"
+                            class="btn kb-confirm"
+                            data-icon="trash"
+                            data-message="{{ 'This will permanently delete the payout. Continue?'|t('kickback')|e('html_attr') }}">
+                        {{ 'payout.action.cancel'|t('kickback') }}
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+
+    {% js %}
+        document.querySelectorAll('.kb-confirm').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                if (!confirm(btn.dataset.message)) {
+                    e.preventDefault();
+                }
+            });
+        });
+
+        document.querySelectorAll('.kb-reject-form').forEach(function(form) {
+            form.addEventListener('submit', function(e) {
+                if (!form.note.value.trim()) {
+                    e.preventDefault();
+                    alert(form.dataset.requiredMessage);
+                }
+            });
+        });
+    {% endjs %}
+{% endblock %}

@@ -1,0 +1,535 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+{% set title = 'settings.title'|t('kickback') %}
+{% set selectedSubnavItem = 'settings' %}
+
+{# Site switcher - _layouts/cp doesn't honor showSiteMenu like elementindex does,
+   so we build the site-crumb ourselves using the same pattern Craft's native
+   elementindex layout uses (vendor/craftcms/cms/src/templates/_layouts/elementindex.twig). #}
+{% set selectableSites = craft.app.sites.getEditableSites() %}
+{% if selectableSites|length > 1 %}
+    {% set crumbs = (crumbs ?? [])|unshift({
+        id: 'site-crumb',
+        icon: 'world',
+        iconAltText: 'Site'|t('app'),
+        label: currentSite.name|t('site'),
+        menu: {
+            items: siteMenuItems(selectableSites, currentSite),
+            label: 'Select site'|t('app'),
+        },
+    }) %}
+{% endif %}
+
+{% set tabs = {
+    commissions: { label: 'nav.commissions'|t('kickback'), url: '#commissions' },
+    tracking: { label: 'program.field.tracking'|t('kickback'), url: '#tracking' },
+    payouts: { label: 'nav.payouts'|t('kickback'), url: '#payouts' },
+    gateways: { label: 'Gateways'|t('kickback'), url: '#gateways' },
+    fraud: { label: 'Fraud'|t('kickback'), url: '#fraud' },
+    multitier: { label: 'Multi-Tier'|t('kickback'), url: '#multitier' },
+    portal: { label: 'Portal'|t('kickback'), url: '#portal' },
+} %}
+
+{% block content %}
+    {% do view.registerAssetBundle('anvildev\\craftkickback\\assets\\cp\\CpAssetBundle') %}
+
+    <form method="post" accept-charset="UTF-8">
+        {{ csrfInput() }}
+        {{ actionInput('kickback/settings/save') }}
+        {{ redirectInput('kickback/settings') }}
+
+        {# ─ Commissions ──────────────── #}
+        <div id="commissions">
+            <h2>{{ 'settings.commissionDefaults'|t('kickback') }}</h2>
+            <p class="light">{{ 'Default rates applied when no commission rules match.'|t('kickback') }}</p>
+
+            {{ forms.selectField({
+                label: 'settings.defaultType'|t('kickback'),
+                instructions: 'Percentage calculates commission as a share of the order subtotal (e.g. 10% of $200 = $20). Fixed amount pays the same flat fee per order regardless of order size (e.g. $10 per order).'|t('kickback'),
+                id: 'defaultCommissionType',
+                name: 'defaultCommissionType',
+                value: settings.defaultCommissionType,
+                options: [
+                    { label: 'Percentage of order'|t('kickback'), value: 'percentage' },
+                    { label: 'Fixed amount per order'|t('kickback'), value: 'flat' },
+                ],
+            }) }}
+
+            {{ forms.textField({
+                label: 'settings.defaultRate'|t('kickback'),
+                instructions: 'The fallback rate used when no program, group, or rule override applies.'|t('kickback'),
+                id: 'defaultCommissionRate',
+                name: 'defaultCommissionRate',
+                type: 'number',
+                step: 0.01,
+                value: settings.defaultCommissionRate,
+            }) }}
+
+            <hr>
+            <h3>{{ 'Coupons'|t('kickback') }}</h3>
+            <p class="light">{{ 'Coupon-based attribution and self-service coupon generation.'|t('kickback') }}</p>
+
+            {{ forms.lightswitchField({
+                label: 'settings.couponTracking'|t('kickback'),
+                instructions: 'settings.couponTrackingHint'|t('kickback'),
+                id: 'enableCouponTracking',
+                name: 'enableCouponTracking',
+                on: settings.enableCouponTracking,
+            }) }}
+
+            {{ forms.lightswitchField({
+                label: 'Enable Coupon Creation'|t('kickback'),
+                instructions: 'Master switch for creating coupons. When off, both the admin bulk-generate form and the affiliate self-service portal are blocked. Existing coupons keep working.'|t('kickback'),
+                id: 'enableCouponCreation',
+                name: 'enableCouponCreation',
+                on: settings.enableCouponCreation,
+            }) }}
+
+            {{ forms.lightswitchField({
+                label: 'Allow Affiliate Self-Service Coupons'|t('kickback'),
+                instructions: 'When on, affiliates can generate their own Commerce-backed discount coupons from the portal. When off, only admins can create coupons.'|t('kickback'),
+                id: 'allowAffiliateSelfServiceCoupons',
+                name: 'allowAffiliateSelfServiceCoupons',
+                on: settings.allowAffiliateSelfServiceCoupons,
+            }) }}
+
+            {{ forms.textField({
+                label: 'Max Coupons Per Affiliate'|t('kickback'),
+                instructions: 'Cap on how many self-service coupons a single affiliate can hold at once.'|t('kickback'),
+                id: 'maxCouponsPerAffiliate',
+                name: 'maxCouponsPerAffiliate',
+                type: 'number',
+                min: 1,
+                max: 1000,
+                value: settings.maxCouponsPerAffiliate,
+            }) }}
+
+            {{ forms.textField({
+                label: 'Max Self-Service Discount %'|t('kickback'),
+                instructions: 'Upper bound on the discount percent an affiliate can set when generating their own coupon.'|t('kickback'),
+                id: 'maxSelfServiceDiscountPercent',
+                name: 'maxSelfServiceDiscountPercent',
+                type: 'number',
+                min: 1,
+                max: 100,
+                step: 0.1,
+                value: settings.maxSelfServiceDiscountPercent,
+            }) }}
+
+            <hr>
+            <h3>{{ 'Lifetime Commissions'|t('kickback') }}</h3>
+
+            {{ forms.lightswitchField({
+                label: 'settings.lifetimeCommissions'|t('kickback'),
+                instructions: 'settings.lifetimeCommissionsHint'|t('kickback'),
+                id: 'enableLifetimeCommissions',
+                name: 'enableLifetimeCommissions',
+                on: settings.enableLifetimeCommissions,
+            }) }}
+
+            <hr>
+            <h3>{{ 'settings.approval'|t('kickback') }}</h3>
+            <p class="light">{{ 'Control how affiliates and referrals are approved.'|t('kickback') }}</p>
+
+            {{ forms.lightswitchField({
+                label: 'settings.autoApproveAffiliates'|t('kickback'),
+                instructions: 'settings.autoApproveAffiliatesHint'|t('kickback'),
+                id: 'autoApproveAffiliates',
+                name: 'autoApproveAffiliates',
+                on: settings.autoApproveAffiliates,
+            }) }}
+
+            {{ forms.lightswitchField({
+                label: 'settings.autoApproveReferrals'|t('kickback'),
+                instructions: 'settings.autoApproveReferralsHint'|t('kickback'),
+                id: 'autoApproveReferrals',
+                name: 'autoApproveReferrals',
+                on: settings.autoApproveReferrals,
+            }) }}
+
+            <div class="field">
+                <div class="heading">
+                    <label for="holdPeriodDays">{{ 'settings.holdPeriod'|t('kickback') }}</label>
+                    <div class="instructions"><p>{{ 'settings.holdPeriodHint'|t('kickback') }}</p></div>
+                </div>
+                <div class="input">
+                    <input type="number" id="holdPeriodDays" name="holdPeriodDays" value="{{ settings.holdPeriodDays }}" class="text" min="0">
+                </div>
+            </div>
+        </div>
+
+        {# ─ Tracking & Attribution ───── #}
+        <div id="tracking" class="hidden">
+            <h2>{{ 'settings.tracking'|t('kickback') }}</h2>
+            <p class="light">{{ 'How referral clicks are tracked and attributed to affiliates.'|t('kickback') }}</p>
+
+            <div class="field">
+                <div class="heading">
+                    <label for="cookieDuration">{{ 'settings.cookieDuration'|t('kickback') }}</label>
+                    <div class="instructions"><p>{{ 'settings.cookieDurationHint'|t('kickback') }}</p></div>
+                </div>
+                <div class="input">
+                    <input type="number" id="cookieDuration" name="cookieDuration" value="{{ settings.cookieDuration }}" class="text" min="1">
+                </div>
+            </div>
+
+            {{ forms.selectField({
+                label: 'settings.attributionModel'|t('kickback'),
+                instructions: 'When a customer clicks multiple affiliate links before purchasing: <strong>Last Click</strong> credits the most recent affiliate. <strong>First Click</strong> credits the original affiliate and ignores later clicks. <strong>Linear</strong> splits the commission equally across all affiliates involved.'|t('kickback'),
+                id: 'attributionModel',
+                name: 'attributionModel',
+                value: settings.attributionModel,
+                options: [
+                    { label: 'attributionModel.lastClick'|t('kickback'), value: 'last_click' },
+                    { label: 'attributionModel.firstClick'|t('kickback'), value: 'first_click' },
+                    { label: 'Linear'|t('kickback'), value: 'linear' },
+                ],
+            }) }}
+
+            <div class="field">
+                <div class="heading">
+                    <label for="referralParamName">{{ 'Fallback Query Parameter'|t('kickback') }}</label>
+                    <div class="instructions"><p>{{ 'Referral links use the /r/code format. This parameter is used as a fallback for query-string links (e.g. ?ref=code).'|t('kickback') }}</p></div>
+                </div>
+                <div class="input">
+                    <input type="text" id="referralParamName" name="referralParamName" value="{{ settings.referralParamName }}" class="text">
+                </div>
+            </div>
+
+            <hr>
+            <h3>{{ 'Data Retention'|t('kickback') }}</h3>
+
+            <div class="field">
+                <div class="heading">
+                    <label for="clickRetentionDays">{{ 'Click Retention (days)'|t('kickback') }}</label>
+                    <div class="instructions"><p>{{ 'Click records older than this are deleted during garbage collection. Set to 0 to keep clicks forever.'|t('kickback') }}</p></div>
+                </div>
+                <div class="input">
+                    <input type="number" id="clickRetentionDays" name="clickRetentionDays" value="{{ settings.clickRetentionDays }}" class="text" min="0">
+                </div>
+            </div>
+        </div>
+
+        {# ─ Payouts ───────────────────── #}
+        <div id="payouts" class="hidden">
+            <h2>{{ 'nav.payouts'|t('kickback') }}</h2>
+            <p class="light">{{ 'Payout thresholds, refund handling, and order exclusions.'|t('kickback') }}</p>
+
+            <div class="field">
+                <div class="heading">
+                    <label for="minimumPayoutAmount">{{ 'settings.minimumPayout'|t('kickback') }}</label>
+                </div>
+                <div class="input">
+                    <input type="number" step="0.01" id="minimumPayoutAmount" name="minimumPayoutAmount" value="{{ settings.minimumPayoutAmount }}" class="text" min="0">
+                </div>
+            </div>
+
+            <hr>
+            <h3>{{ 'Refund & Cancellation'|t('kickback') }}</h3>
+            <p class="light">{{ 'How commissions are handled when orders are refunded or cancelled.'|t('kickback') }}</p>
+
+            {{ forms.lightswitchField({
+                label: 'settings.reverseOnRefund'|t('kickback'),
+                instructions: 'settings.reverseOnRefundHint'|t('kickback'),
+                id: 'reverseCommissionOnRefund',
+                name: 'reverseCommissionOnRefund',
+                on: settings.reverseCommissionOnRefund,
+            }) }}
+
+            <div class="field">
+                <div class="heading">
+                    <label for="cancelledStatusHandles">{{ 'Cancelled Order Statuses'|t('kickback') }}</label>
+                    <div class="instructions"><p>{{ 'Comma-separated order status handles that should cancel referrals and reverse commissions (e.g. "cancelled, refunded").'|t('kickback') }}</p></div>
+                </div>
+                <div class="input">
+                    <input type="text" id="cancelledStatusHandles" name="cancelledStatusHandles" value="{{ settings.cancelledStatusHandles|join(', ') }}" class="text">
+                </div>
+            </div>
+
+            <hr>
+            <h3>{{ 'Commission Calculation'|t('kickback') }}</h3>
+            <p class="light">{{ 'What to include or exclude when calculating the commissionable order amount.'|t('kickback') }}</p>
+
+            {{ forms.lightswitchField({
+                label: 'settings.excludeShipping'|t('kickback'),
+                id: 'excludeShippingFromCommission',
+                name: 'excludeShippingFromCommission',
+                on: settings.excludeShippingFromCommission,
+            }) }}
+
+            {{ forms.lightswitchField({
+                label: 'settings.excludeTax'|t('kickback'),
+                id: 'excludeTaxFromCommission',
+                name: 'excludeTaxFromCommission',
+                on: settings.excludeTaxFromCommission,
+            }) }}
+
+            <hr>
+            <h3>{{ 'Payout Verification'|t('kickback') }}</h3>
+            <p class="light">{{ 'Require a second user to approve payouts before they are processed.'|t('kickback') }}</p>
+
+            {{ forms.lightswitchField({
+                label: 'Require Payout Verification'|t('kickback'),
+                instructions: 'When enabled, payouts cannot be processed until a user with the Verify Payouts permission approves them. Users cannot verify payouts they created themselves.'|t('kickback'),
+                id: 'requirePayoutVerification',
+                name: 'requirePayoutVerification',
+                on: settings.requirePayoutVerification,
+                toggle: 'verification-options',
+            }) }}
+
+            <div id="verification-options" {% if not settings.requirePayoutVerification %}class="hidden"{% endif %}>
+                {{ forms.elementSelectField({
+                    label: 'Default Verifier'|t('kickback'),
+                    instructions: 'User assigned to verify new payouts. If unset, any user with the Verify Payouts permission can act on pending approvals.'|t('kickback'),
+                    id: 'defaultPayoutVerifierId',
+                    name: 'defaultPayoutVerifierId',
+                    elementType: 'craft\\elements\\User',
+                    limit: 1,
+                    elements: settings.defaultPayoutVerifierId ? [craft.users.id(settings.defaultPayoutVerifierId).one()]|filter(v => v) : [],
+                }) }}
+
+                {{ forms.lightswitchField({
+                    label: 'Notify Verifier on Request'|t('kickback'),
+                    instructions: 'Push a CP announcement to all users when a new payout needs review (Craft 5 announcements broadcast to all CP users).'|t('kickback'),
+                    id: 'notifyVerifierOnRequest',
+                    name: 'notifyVerifierOnRequest',
+                    on: settings.notifyVerifierOnRequest,
+                }) }}
+            </div>
+
+            <hr>
+            <h3>{{ 'Scheduled Auto-Processing'|t('kickback') }}</h3>
+            <p class="light">{{ 'Runs a batch payout automatically on a schedule, then sends all PayPal and Stripe payouts via the gateway API. Manual and store credit payouts are created but not auto-sent.'|t('kickback') }}</p>
+
+            {{ forms.lightswitchField({
+                label: 'Enable scheduled auto-processing'|t('kickback'),
+                id: 'batchAutoProcessEnabled',
+                name: 'batchAutoProcessEnabled',
+                on: settings.batchAutoProcessEnabled,
+            }) }}
+
+            {{ forms.selectField({
+                label: 'Cadence'|t('kickback'),
+                instructions: 'How often the batch should run. Weekly/biweekly fire on Mondays, monthly on the 1st, quarterly on the 1st of Jan/Apr/Jul/Oct.'|t('kickback'),
+                id: 'batchAutoProcessCadence',
+                name: 'batchAutoProcessCadence',
+                value: settings.batchAutoProcessCadence,
+                options: [
+                    { label: 'Weekly (every Monday)'|t('kickback'), value: 'weekly' },
+                    { label: 'Bi-weekly (every other Monday)'|t('kickback'), value: 'biweekly' },
+                    { label: 'Monthly (1st of month)'|t('kickback'), value: 'monthly' },
+                    { label: 'Quarterly (1st of Jan/Apr/Jul/Oct)'|t('kickback'), value: 'quarterly' },
+                ],
+            }) }}
+
+            <div class="field">
+                <div class="heading">
+                    <label>{{ 'Last scheduled run'|t('kickback') }}</label>
+                </div>
+                <div class="input">
+                    {% if settings.batchAutoProcessLastRun %}
+                        <span class="light">{{ settings.batchAutoProcessLastRun }} UTC</span>
+                    {% else %}
+                        <span class="light">{{ 'Never run yet.'|t('kickback') }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+
+        {# ─ Payment Gateways ─────────── #}
+        <div id="gateways" class="hidden">
+            <h2>{{ 'Payment Gateways'|t('kickback') }}</h2>
+            <p class="light">{{ 'Configure payment gateway credentials to enable one-click payouts. Use environment variables (e.g. $PAYPAL_CLIENT_ID) for security.'|t('kickback') }}</p>
+
+            <h3>{{ 'PayPal Payouts'|t('kickback') }}</h3>
+
+            <div class="field">
+                <div class="heading">
+                    <label for="paypalClientId">{{ 'Client ID'|t('kickback') }}</label>
+                </div>
+                <div class="input">
+                    <input type="text" id="paypalClientId" name="paypalClientId" value="{{ settings.paypalClientId }}" class="text fullwidth" placeholder="$PAYPAL_CLIENT_ID">
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="heading">
+                    <label for="paypalClientSecret">{{ 'Client Secret'|t('kickback') }}</label>
+                </div>
+                <div class="input">
+                    <input type="password" id="paypalClientSecret" name="paypalClientSecret" value="{{ settings.paypalClientSecret }}" class="text fullwidth" placeholder="$PAYPAL_CLIENT_SECRET" autocomplete="off">
+                </div>
+            </div>
+
+            {{ forms.lightswitchField({
+                label: 'Sandbox Mode'|t('kickback'),
+                instructions: 'Use PayPal sandbox environment for testing.'|t('kickback'),
+                id: 'paypalSandbox',
+                name: 'paypalSandbox',
+                on: settings.paypalSandbox,
+            }) }}
+
+            <div class="field">
+                <div class="heading">
+                    <label for="paypalWebhookId">{{ 'Webhook ID'|t('kickback') }}</label>
+                    <div class="instructions"><p>{{ 'PayPal webhook ID used to verify inbound webhook signatures. Leave empty to disable inbound webhooks.'|t('kickback') }}</p></div>
+                </div>
+                <div class="input">
+                    <input type="text" id="paypalWebhookId" name="paypalWebhookId" value="{{ settings.paypalWebhookId }}" class="text fullwidth" placeholder="$PAYPAL_WEBHOOK_ID" autocomplete="off">
+                </div>
+            </div>
+
+            <hr>
+            <h3>{{ 'Stripe Connect'|t('kickback') }}</h3>
+
+            <div class="field">
+                <div class="heading">
+                    <label for="stripeSecretKey">{{ 'Secret Key'|t('kickback') }}</label>
+                </div>
+                <div class="input">
+                    <input type="password" id="stripeSecretKey" name="stripeSecretKey" value="{{ settings.stripeSecretKey }}" class="text fullwidth" placeholder="$STRIPE_SECRET_KEY" autocomplete="off">
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="heading">
+                    <label for="stripeWebhookSecret">{{ 'Webhook Secret'|t('kickback') }}</label>
+                    <div class="instructions"><p>{{ 'Stripe signing secret (whsec_…) used to verify inbound webhook signatures. Leave empty to disable inbound webhooks.'|t('kickback') }}</p></div>
+                </div>
+                <div class="input">
+                    <input type="password" id="stripeWebhookSecret" name="stripeWebhookSecret" value="{{ settings.stripeWebhookSecret }}" class="text fullwidth" placeholder="$STRIPE_WEBHOOK_SECRET" autocomplete="off">
+                </div>
+            </div>
+        </div>
+
+        {# ─ Fraud Detection ──────────── #}
+        <div id="fraud" class="hidden">
+            <h2>{{ 'nav.fraud'|t('kickback') }}</h2>
+            <p class="light">{{ 'Detect and flag suspicious referral activity.'|t('kickback') }}</p>
+
+            {{ forms.lightswitchField({
+                label: 'settings.enableFraud'|t('kickback'),
+                id: 'enableFraudDetection',
+                name: 'enableFraudDetection',
+                on: settings.enableFraudDetection,
+            }) }}
+
+            {{ forms.lightswitchField({
+                label: 'settings.fraud.autoFlag'|t('kickback'),
+                instructions: 'settings.fraud.autoFlagHint'|t('kickback'),
+                id: 'fraudAutoFlag',
+                name: 'fraudAutoFlag',
+                on: settings.fraudAutoFlag,
+            }) }}
+
+            <hr>
+            <h3>{{ 'Thresholds'|t('kickback') }}</h3>
+
+            <div class="flex">
+                <div class="field">
+                    <div class="heading">
+                        <label for="fraudClickVelocityThreshold">{{ 'settings.fraud.clickVelocityThreshold'|t('kickback') }}</label>
+                        <div class="instructions"><p>{{ 'settings.fraud.clickVelocityThresholdHint'|t('kickback') }}</p></div>
+                    </div>
+                    <div class="input">
+                        <input type="number" id="fraudClickVelocityThreshold" name="fraudClickVelocityThreshold" value="{{ settings.fraudClickVelocityThreshold }}" class="text" min="1">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="heading">
+                        <label for="fraudClickVelocityWindow">{{ 'settings.fraud.clickVelocityWindow'|t('kickback') }}</label>
+                        <div class="instructions"><p>{{ 'settings.fraud.clickVelocityWindowHint'|t('kickback') }}</p></div>
+                    </div>
+                    <div class="input">
+                        <input type="number" id="fraudClickVelocityWindow" name="fraudClickVelocityWindow" value="{{ settings.fraudClickVelocityWindow }}" class="text" min="1">
+                    </div>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="heading">
+                    <label for="fraudRapidConversionMinutes">{{ 'settings.fraud.rapidConversionWindow'|t('kickback') }}</label>
+                    <div class="instructions"><p>{{ 'settings.fraud.rapidConversionWindowHint'|t('kickback') }}</p></div>
+                </div>
+                <div class="input">
+                    <input type="number" id="fraudRapidConversionMinutes" name="fraudRapidConversionMinutes" value="{{ settings.fraudRapidConversionMinutes }}" class="text" min="0">
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="heading">
+                    <label for="fraudIpReuseThreshold">{{ 'settings.fraud.ipReuseThreshold'|t('kickback') }}</label>
+                    <div class="instructions"><p>{{ 'settings.fraud.ipReuseThresholdHint'|t('kickback') }}</p></div>
+                </div>
+                <div class="input">
+                    <input type="number" id="fraudIpReuseThreshold" name="fraudIpReuseThreshold" value="{{ settings.fraudIpReuseThreshold }}" class="text" min="1">
+                </div>
+            </div>
+        </div>
+
+        {# ─ Multi-Tier Commissions ────── #}
+        <div id="multitier" class="hidden">
+            <h2>{{ 'Multi-Tier Commissions'|t('kickback') }}</h2>
+            <p class="light">{{ 'Allow affiliates to recruit sub-affiliates and earn override commissions from their referrals.'|t('kickback') }}</p>
+
+            {{ forms.lightswitchField({
+                label: 'settings.enableMultiTier'|t('kickback'),
+                instructions: 'Affiliates can recruit sub-affiliates and earn override commissions from their sales. Requires MLM Tier commission rules to be configured.'|t('kickback'),
+                id: 'enableMultiTier',
+                name: 'enableMultiTier',
+                on: settings.enableMultiTier,
+                toggle: 'multitier-options',
+            }) }}
+
+            <div id="multitier-options" {% if not settings.enableMultiTier %}class="hidden"{% endif %}>
+                <div class="field">
+                    <div class="heading">
+                        <label for="maxMlmDepth">{{ 'Max Tier Depth'|t('kickback') }}</label>
+                        <div class="instructions"><p>{{ 'How many levels up the recruiter chain earn commissions on a single sale (1–10).'|t('kickback') }}</p></div>
+                    </div>
+                    <div class="input">
+                        <input type="number" id="maxMlmDepth" name="maxMlmDepth" value="{{ settings.maxMlmDepth }}" class="text" min="1" max="10">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# ─ Affiliate Portal ──────────── #}
+        <div id="portal" class="hidden">
+            <h2>{{ 'settings.portal'|t('kickback') }} - {{ currentSite.name }}</h2>
+            <p class="light">
+                {# |raw is safe: the translation string is template-literal and we control it. Re-audit if strings are externalized. #}
+                {{ 'Settings below apply to <strong>{site}</strong>. Use the site switcher at the top of the page to configure other sites.'|t('kickback', {site: currentSite.name})|raw }}
+            </p>
+
+            {{ forms.lightswitchField({
+                label: 'Enable portal on this site'|t('kickback'),
+                id: 'portalEnabled',
+                name: 'portalEnabled',
+                on: settings.affiliatePortalEnabledSites[currentSite.handle] ?? false,
+            }) }}
+
+            <div class="field">
+                <div class="heading">
+                    <label for="portalPath">{{ 'Portal URL path'|t('kickback') }}</label>
+                    <div class="instructions">
+                        <p>{{ 'Path segment appended to this site\'s base URL, e.g. "affiliate" → {base}affiliate. Letters, numbers, dashes, underscores, and slashes only.'|t('kickback', {base: currentSite.baseUrl|default('https://example.com/')}) }}</p>
+                    </div>
+                </div>
+                <div class="input">
+                    <input type="text"
+                           id="portalPath"
+                           name="portalPath"
+                           value="{{ settings.affiliatePortalPaths[currentSite.handle] ?? '' }}"
+                           class="text"
+                           placeholder="affiliate">
+                </div>
+            </div>
+        </div>
+
+        <div class="kb-form-footer">
+            <button type="submit" class="btn submit">{{ 'Save'|t('app') }}</button>
+        </div>
+    </form>
+{% endblock %}

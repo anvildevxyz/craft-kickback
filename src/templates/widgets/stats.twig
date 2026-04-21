@@ -1,0 +1,30 @@
+<div class="kb-widget">
+    <div class="kb-widget__row">
+        <div class="kb-widget__stat">
+            <span class="kb-widget__value">{{ activeAffiliates }}</span>
+            <span class="kb-widget__label">{{ 'dashboard.activeAffiliates'|t('kickback') }}</span>
+        </div>
+        <div class="kb-widget__stat">
+            <span class="kb-widget__value">{{ recentReferrals }}</span>
+            <span class="kb-widget__label">{{ 'Referrals (30d)'|t('kickback') }}</span>
+        </div>
+    </div>
+    <div class="kb-widget__row">
+        <div class="kb-widget__stat">
+            <span class="kb-widget__value">{{ recentCommissions|currency(currency) }}</span>
+            <span class="kb-widget__label">{{ 'Approved (30d)'|t('kickback') }}</span>
+        </div>
+        <div class="kb-widget__stat">
+            <span class="kb-widget__value">{{ pendingBalance|currency(currency) }}</span>
+            <span class="kb-widget__label">{{ 'affiliateStatus.pending'|t('kickback') }}</span>
+        </div>
+    </div>
+    {% if flaggedCount > 0 %}
+        <div class="kb-widget__alert">
+            <a href="{{ cpUrl('kickback/fraud') }}">{{ '{count} flagged referral(s)'|t('kickback', { count: flaggedCount }) }}</a>
+        </div>
+    {% endif %}
+    <div class="kb-widget__footer">
+        <a href="{{ cpUrl('kickback') }}">{{ 'Open Dashboard'|t('kickback') }} &rarr;</a>
+    </div>
+</div>

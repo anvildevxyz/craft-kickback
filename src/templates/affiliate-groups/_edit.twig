@@ -1,0 +1,71 @@
+{% extends '_layouts/cp' %}
+{% set title = group ? group.name : 'group.newLong'|t('kickback') %}
+{% set selectedSubnavItem = 'affiliate-groups' %}
+{% set fullPageForm = true %}
+
+{% block content %}
+    {% do view.registerAssetBundle('anvildev\\craftkickback\\assets\\cp\\CpAssetBundle') %}
+    {{ actionInput('kickback/affiliate-groups/save') }}
+    {{ redirectInput('kickback/affiliate-groups') }}
+
+    {% if group and group.id %}
+        {{ hiddenInput('groupId', group.id) }}
+    {% endif %}
+
+    <div id="fields">
+            <div class="field">
+                <div class="heading">
+                    <label for="name">{{ 'group.field.name'|t('kickback') }}</label>
+                </div>
+                <div class="input">
+                    <input type="text" id="name" name="name" value="{{ group ? group.name : '' }}" class="text fullwidth" required>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="heading">
+                    <label for="handle">{{ 'common.handle'|t('kickback') }}</label>
+                    <div class="instructions"><p>{{ 'common.handleHint'|t('kickback') }}</p></div>
+                </div>
+                <div class="input">
+                    <input type="text" id="handle" name="handle" value="{{ group ? group.handle : '' }}" class="text fullwidth code" required pattern="[a-zA-Z][a-zA-Z0-9_]*">
+                </div>
+            </div>
+
+            <hr>
+            <h2>{{ 'common.commission'|t('kickback') }}</h2>
+
+            <div class="flex" style="gap: 1rem;">
+                <div class="field" style="flex: 1;">
+                    <div class="heading">
+                        <label for="commissionRate">{{ 'common.rate'|t('kickback') }}</label>
+                    </div>
+                    <div class="input">
+                        <input type="number" step="0.01" min="0" id="commissionRate" name="commissionRate" value="{{ group ? group.commissionRate : '' }}" class="text fullwidth" required>
+                    </div>
+                </div>
+                <div class="field" style="flex: 1;">
+                    <div class="heading">
+                        <label for="commissionType">{{ 'common.rateType'|t('kickback') }}</label>
+                    </div>
+                    <div class="input">
+                        <div class="select">
+                            <select id="commissionType" name="commissionType">
+                                <option value="percentage" {{ group and group.commissionType == 'percentage' ? 'selected' }}>{{ 'rateType.percentage'|t('kickback') }}</option>
+                                <option value="flat" {{ group and group.commissionType == 'flat' ? 'selected' }}>{{ 'rateType.flat'|t('kickback') }}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="heading">
+                    <label for="sortOrder">{{ 'common.sortOrder'|t('kickback') }}</label>
+                </div>
+                <div class="input">
+                    <input type="number" id="sortOrder" name="sortOrder" value="{{ group ? group.sortOrder : 0 }}" class="text fullwidth">
+                </div>
+            </div>
+    </div>
+{% endblock %}

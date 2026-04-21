@@ -1,0 +1,10 @@
+{% extends 'kickback/emails/_base' %}
+
+{% set title = 'Payout Processed'|t('kickback') %}
+
+{% block content %}
+    <h1 style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">{{ 'Payout Processed'|t('kickback') }}</h1>
+    <p style="margin: 0 0 16px; font-size: 15px;">{{ 'Hi {name},'|t('kickback', { name: name }) }}</p>
+    <p style="margin: 0 0 16px; font-size: 15px;">{{ 'Your payout of {amount} has been processed via {method}.'|t('kickback', { amount: amount, method: method }) }}</p>
+    <p style="margin: 0; font-size: 15px;">{{ 'Thanks for being a great affiliate!'|t('kickback') }}</p>
+{% endblock %}

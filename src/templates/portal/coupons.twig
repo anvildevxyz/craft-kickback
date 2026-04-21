@@ -1,0 +1,86 @@
+{% extends 'kickback/portal/_layout' %}
+{% set portalBase = '/' ~ settings.currentSitePortalPath %}
+{% set activeNav = 'coupons' %}
+
+{% block title %}Coupons{% endblock %}
+
+{% block content %}
+    <h1>{{ 'Your Coupons'|t('kickback') }}</h1>
+
+    {% if settings.allowAffiliateSelfServiceCoupons and coupons|length < settings.maxCouponsPerAffiliate %}
+        <div class="kb-table-wrap" style="padding: 1.25rem; margin-bottom: 2rem;">
+            <form method="post">
+                {{ csrfInput() }}
+                {{ actionInput('kickback/portal/generate-coupon') }}
+                {{ redirectInput(portalBase ~ '/coupons') }}
+
+                <div class="kb-form-row">
+                    <div class="kb-form-group">
+                        <label for="discountPercent">{{ 'Discount %'|t('kickback') }}</label>
+                        <input type="number" id="discountPercent" name="discountPercent" value="10" min="1" max="{{ settings.maxSelfServiceDiscountPercent }}" step="1">
+                    </div>
+                    <button type="submit" class="kb-btn kb-btn-primary">{{ 'Generate Coupon'|t('kickback') }}</button>
+                </div>
+                <p class="kb-form-help">{{ 'Creates a unique coupon code linked to your affiliate account. Customers using this code will be attributed to you.'|t('kickback') }}</p>
+            </form>
+        </div>
+    {% endif %}
+
+    {% if activeCoupons|length %}
+        <div class="kb-table-wrap">
+            <div class="kb-table-header">{{ 'Active Coupons'|t('kickback') }}</div>
+            <table class="kb-table">
+                <thead>
+                    <tr>
+                        <th>{{ 'Code'|t('kickback') }}</th>
+                        <th>{{ 'Discount'|t('kickback') }}</th>
+                        <th>{{ 'Uses'|t('kickback') }}</th>
+                        <th>{{ 'Created'|t('kickback') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for coupon in activeCoupons %}
+                        <tr>
+                            <td><code class="kb-code-pill">{{ coupon.record.code }}</code></td>
+                            <td>{{ coupon.discountPercent ? coupon.discountPercent ~ '%' : '-' }}</td>
+                            <td>{{ coupon.uses }}{% if coupon.maxUses %} / {{ coupon.maxUses }}{% endif %}</td>
+                            <td>{{ coupon.record.dateCreated|date('M j, Y') }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+    {% if inactiveCoupons|length %}
+        <div class="kb-table-wrap" style="opacity: 0.65;">
+            <div class="kb-table-header">{{ 'Inactive Coupons'|t('kickback') }}</div>
+            <table class="kb-table">
+                <thead>
+                    <tr>
+                        <th>{{ 'Code'|t('kickback') }}</th>
+                        <th>{{ 'Discount'|t('kickback') }}</th>
+                        <th>{{ 'Uses'|t('kickback') }}</th>
+                        <th>{{ 'Created'|t('kickback') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for coupon in inactiveCoupons %}
+                        <tr>
+                            <td><code class="kb-code-pill" style="opacity: 0.5; text-decoration: line-through;">{{ coupon.record.code }}</code></td>
+                            <td>{{ coupon.discountPercent ? coupon.discountPercent ~ '%' : '-' }}</td>
+                            <td>{{ coupon.uses }}{% if coupon.maxUses %} / {{ coupon.maxUses }}{% endif %}</td>
+                            <td>{{ coupon.record.dateCreated|date('M j, Y') }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+    {% if not activeCoupons|length and not inactiveCoupons|length %}
+        <div class="kb-empty">
+            <p>{{ 'You haven\'t created any coupons yet. Generate one above to start sharing discount codes with your audience.'|t('kickback') }}</p>
+        </div>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends '_layouts/cp' %}
+{% set title = 'payout.batch'|t('kickback') %}
+{% set selectedSubnavItem = 'payouts' %}
+
+{% block content %}
+    {% do view.registerAssetBundle('anvildev\\craftkickback\\assets\\cp\\CpAssetBundle') %}
+    <p>{{ 'Affiliates with a pending balance of at least {amount} are eligible for payout.'|t('kickback', {
+        amount: minimumAmount|currency(currency),
+    }) }}</p>
+
+    {% if eligibleAffiliates|length %}
+        <table class="data fullwidth" style="margin-bottom: 2rem;">
+            <thead>
+                <tr>
+                    <th>{{ 'affiliate.one'|t('kickback') }}</th>
+                    <th>{{ 'affiliate.field.pendingBalance'|t('kickback') }}</th>
+                    <th>{{ 'affiliate.field.payoutMethod'|t('kickback') }}</th>
+                    <th>{{ 'affiliate.field.lifetimeEarnings'|t('kickback') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for affiliate in eligibleAffiliates %}
+                    <tr>
+                        <td><a href="{{ url('kickback/affiliates/' ~ affiliate.id) }}">{{ affiliate.title }}</a></td>
+                        <td>{{ affiliate.pendingBalance|currency(currency) }}</td>
+                        <td>{{ affiliate.payoutMethod|capitalize|replace({'_': ' '}) }}</td>
+                        <td>{{ affiliate.lifetimeEarnings|currency(currency) }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <form method="post">
+            {{ csrfInput() }}
+            {{ actionInput('kickback/payouts/process-batch') }}
+
+            <div class="field">
+                <div class="heading">
+                    <label for="notes">{{ 'payout.batchNotes'|t('kickback') }}</label>
+                    <div class="instructions"><p>{{ 'payout.batchNotesHint'|t('kickback') }}</p></div>
+                </div>
+                <div class="input">
+                    <input type="text" id="notes" name="notes" class="text fullwidth" placeholder="{{ 'e.g. Monthly payout - February 2026'|t('kickback') }}">
+                </div>
+            </div>
+
+            {% if hasConfiguredGateways is defined and hasConfiguredGateways %}
+                <div class="field" style="margin-top: 1rem;">
+                    <label for="autoProcess">
+                        <input type="checkbox" id="autoProcess" name="autoProcess" value="1">
+                        {{ 'Auto-process via payment gateways'|t('kickback') }}
+                    </label>
+                    <div class="instructions">
+                        <p>{{ 'PayPal and Stripe payouts will be automatically sent. Manual and store credit payouts are unaffected.'|t('kickback') }}</p>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="kb-form-footer btngroup">
+                <button type="submit" class="btn submit kb-confirm" data-message="{{ 'Create {count} payout(s)?'|t('kickback', {count: eligibleAffiliates|length})|e('html_attr') }}">
+                    {{ 'Create {count} Payout(s)'|t('kickback', {count: eligibleAffiliates|length}) }}
+                </button>
+            </div>
+        </form>
+    {% else %}
+        <div class="zilch">
+            <p>{{ 'payout.eligibleEmptyHint'|t('kickback') }}</p>
+            <p>{{ 'Affiliates will appear here once their pending balance reaches the minimum above. Approve more commissions or lower the minimum in settings to see more affiliates here.'|t('kickback') }}</p>
+        </div>
+    {% endif %}
+    {% js %}
+        document.querySelectorAll('.kb-confirm').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                if (!confirm(btn.dataset.message)) {
+                    e.preventDefault();
+                }
+            });
+        });
+    {% endjs %}
+{% endblock %}

@@ -1,0 +1,162 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+{% set title = program ? program.name ~ ' - ' ~ currentSite.name : 'program.new'|t('kickback') %}
+{% set selectedSubnavItem = 'programs' %}
+{% set fullPageForm = true %}
+
+{# Site switcher - reused pattern from settings/index.twig #}
+{% set selectableSites = craft.app.sites.getEditableSites() %}
+{% if program and selectableSites|length > 1 %}
+    {% set crumbs = (crumbs ?? [])|unshift({
+        id: 'site-crumb',
+        icon: 'world',
+        iconAltText: 'Site'|t('app'),
+        label: currentSite.name|t('site'),
+        menu: {
+            items: siteMenuItems(selectableSites, currentSite),
+            label: 'Select site'|t('app'),
+        },
+    }) %}
+{% endif %}
+
+{% block content %}
+    {% do view.registerAssetBundle('anvildev\\craftkickback\\assets\\cp\\CpAssetBundle') %}
+    {{ actionInput('kickback/programs/save') }}
+    {{ redirectInput('kickback/programs') }}
+
+    {% if program and program.id %}
+        {{ hiddenInput('programId', program.id) }}
+    {% endif %}
+
+    <div id="fields">
+            {% if craft.app.isMultiSite %}
+                {{ forms.selectField({
+                    first: true,
+                    label: 'multiSite.propagationMethod'|t('kickback'),
+                    instructions: 'multiSite.propagationInstructions'|t('kickback'),
+                    id: 'propagationMethod',
+                    name: 'propagationMethod',
+                    value: program ? program.propagationMethod.value : 'none',
+                    options: [
+                        { label: 'multiSite.propagationNone'|t('kickback'), value: 'none' },
+                        { label: 'multiSite.propagationAll'|t('kickback'), value: 'all' },
+                        { label: 'multiSite.propagationSiteGroup'|t('kickback'), value: 'siteGroup' },
+                        { label: 'multiSite.propagationLanguage'|t('kickback'), value: 'language' },
+                    ],
+                    errors: program ? program.getErrors('propagationMethod') : [],
+                }) }}
+                <hr>
+            {% endif %}
+
+            <div class="field">
+                <div class="heading">
+                    <label for="name">{{ 'program.field.name'|t('kickback') }}</label>
+                </div>
+                <div class="input">
+                    <input type="text" id="name" name="name" value="{{ program ? program.name : '' }}" class="text fullwidth" required>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="heading">
+                    <label for="handle">{{ 'common.handle'|t('kickback') }}</label>
+                </div>
+                <div class="input">
+                    <input type="text" id="handle" name="handle" value="{{ program ? program.handle : '' }}" class="text fullwidth code" required pattern="[a-zA-Z][a-zA-Z0-9_]*">
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="heading">
+                    <label for="description">{{ 'common.description'|t('kickback') }}</label>
+                </div>
+                <div class="input">
+                    <textarea id="description" name="description" rows="3" class="text fullwidth">{{ program ? program.description : '' }}</textarea>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="heading">
+                    <label for="status">{{ 'common.status'|t('kickback') }}</label>
+                </div>
+                <div class="input">
+                    <div class="select">
+                        <select id="status" name="status">
+                            <option value="active" {{ program and program.status == 'active' ? 'selected' }}>{{ 'affiliateStatus.active'|t('kickback') }}</option>
+                            <option value="inactive" {{ program and program.status == 'inactive' ? 'selected' }}>{{ 'programStatus.inactive'|t('kickback') }}</option>
+                            <option value="archived" {{ program and program.status == 'archived' ? 'selected' }}>{{ 'programStatus.archived'|t('kickback') }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <hr>
+            <h2>{{ 'settings.commissionDefaults'|t('kickback') }}</h2>
+
+            <div class="flex" style="gap: 1rem;">
+                <div class="field" style="flex: 1;">
+                    <div class="heading">
+                        <label for="defaultCommissionRate">{{ 'settings.defaultRate'|t('kickback') }}</label>
+                    </div>
+                    <div class="input">
+                        <input type="number" step="0.01" min="0" id="defaultCommissionRate" name="defaultCommissionRate" value="{{ program ? program.defaultCommissionRate : 10 }}" class="text fullwidth" required>
+                    </div>
+                </div>
+                <div class="field" style="flex: 1;">
+                    <div class="heading">
+                        <label for="defaultCommissionType">{{ 'Commission Type'|t('kickback') }}</label>
+                    </div>
+                    <div class="input">
+                        <div class="select">
+                            <select id="defaultCommissionType" name="defaultCommissionType">
+                                <option value="percentage" {{ program and program.defaultCommissionType == 'percentage' ? 'selected' }}>{{ 'rateType.percentage'|t('kickback') }}</option>
+                                <option value="flat" {{ program and program.defaultCommissionType == 'flat' ? 'selected' }}>{{ 'rateType.flat'|t('kickback') }}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr>
+            <h2>{{ 'program.field.tracking'|t('kickback') }}</h2>
+
+            <div class="field">
+                <div class="heading">
+                    <label for="cookieDuration">{{ 'settings.cookieDuration'|t('kickback') }}</label>
+                </div>
+                <div class="input">
+                    <input type="number" id="cookieDuration" name="cookieDuration" value="{{ program ? program.cookieDuration : 30 }}" class="text fullwidth" min="1">
+                </div>
+            </div>
+
+            <hr>
+            <h2>{{ 'Behavior'|t('kickback') }}</h2>
+
+            {{ forms.lightswitchField({
+                label: 'program.field.allowSelfReferral'|t('kickback'),
+                id: 'allowSelfReferral',
+                name: 'allowSelfReferral',
+                on: program ? program.allowSelfReferral : false,
+            }) }}
+
+            {{ forms.lightswitchField({
+                label: 'Enable Coupon Creation'|t('kickback'),
+                instructions: 'Allow new coupons to be created for affiliates in this program. The plugin-level setting must also be on.'|t('kickback'),
+                id: 'enableCouponCreation',
+                name: 'enableCouponCreation',
+                on: program ? program.enableCouponCreation : true,
+            }) }}
+
+            <hr>
+            <h2>{{ 'program.field.terms'|t('kickback') }}</h2>
+
+            <div class="field">
+                <div class="heading">
+                    <label for="termsAndConditions">{{ 'program.field.terms'|t('kickback') }}</label>
+                </div>
+                <div class="input">
+                    <textarea id="termsAndConditions" name="termsAndConditions" rows="6" class="text fullwidth">{{ program ? program.termsAndConditions : '' }}</textarea>
+                </div>
+            </div>
+    </div>
+{% endblock %}

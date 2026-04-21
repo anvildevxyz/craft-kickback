@@ -1,0 +1,88 @@
+{% extends "kickback/portal/_layout" %}
+{% set portalBase = '/' ~ settings.currentSitePortalPath %}
+
+{% set activeNav = 'links' %}
+
+{% block title %}Links{% endblock %}
+
+{% block content %}
+    <h1>Referral Links</h1>
+
+    <div class="kb-table-wrap">
+        <div class="kb-table-header">Your Referral Code</div>
+        <div class="kb-table-wrap__body">
+            <p style="font-size: 0.875rem; color: #666; margin-bottom: 0.5rem;">Share this code with others to earn commissions on their purchases.</p>
+            <code class="kb-code-pill kb-code-pill--brand">{{ affiliate.referralCode }}</code>
+        </div>
+    </div>
+
+    <div class="kb-table-wrap">
+        <div class="kb-table-header">Default Referral URL</div>
+        <div class="kb-table-wrap__body">
+            <p style="font-size: 0.875rem; color: #666; margin-bottom: 0.75rem;">This is your default referral link. Anyone who visits this link will be tracked as your referral.</p>
+            <div class="kb-link-box">
+                <input type="text" id="kb-default-url" value="{{ affiliate.getReferralUrl() }}" readonly>
+                <button type="button" class="kb-btn kb-btn-primary kb-copy-btn" data-target="kb-default-url">Copy</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="kb-table-wrap">
+        <div class="kb-table-header">Custom Link Generator</div>
+        <div class="kb-table-wrap__body">
+            <p style="font-size: 0.875rem; color: #666; margin-bottom: 0.75rem;">Enter any URL on this site and generate a referral link for it.</p>
+            <div class="kb-form-group">
+                <label for="kb-destination-url">Destination URL</label>
+                <input type="url" id="kb-destination-url" placeholder="https://{{ craft.app.request.hostName }}/products/example" style="width: 100%; max-width: 500px;">
+                <p class="kb-form-help">Enter the full URL of the page you want to link to.</p>
+            </div>
+            <button type="button" class="kb-btn kb-btn-primary" id="kb-generate-link-btn">Generate Link</button>
+
+            <div id="kb-custom-result" style="display: none; margin-top: 1rem;">
+                <label for="kb-custom-url" style="display: block; font-size: 0.8125rem; font-weight: 500; color: #444; margin-bottom: 0.375rem;">Your Custom Referral Link</label>
+                <div class="kb-link-box">
+                    <input type="text" id="kb-custom-url" value="" readonly>
+                    <button type="button" class="kb-btn kb-btn-primary kb-copy-btn" data-target="kb-custom-url">Copy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        document.querySelectorAll('.kb-copy-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var input = document.getElementById(btn.dataset.target);
+                navigator.clipboard.writeText(input.value).then(function() {
+                    var original = btn.textContent;
+                    btn.textContent = 'Copied!';
+                    setTimeout(function() {
+                        btn.textContent = original;
+                    }, 2000);
+                });
+            });
+        });
+
+        document.getElementById('kb-generate-link-btn').addEventListener('click', function() {
+            var destinationInput = document.getElementById('kb-destination-url');
+            var resultBox = document.getElementById('kb-custom-result');
+            var customUrlInput = document.getElementById('kb-custom-url');
+            var destination = destinationInput.value.trim();
+
+            if (!destination) {
+                alert('Please enter a destination URL.');
+                return;
+            }
+
+            try {
+                var url = new URL(destination);
+                url.searchParams.set('{{ settings.referralParamName }}', '{{ affiliate.referralCode }}');
+                customUrlInput.value = url.toString();
+                resultBox.style.display = 'block';
+            } catch (e) {
+                alert('Please enter a valid URL (including https://).');
+            }
+        });
+    </script>
+{% endblock %}

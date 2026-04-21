@@ -1,0 +1,23 @@
+{% extends 'kickback/emails/_base' %}
+
+{% set title = 'Fraud Alert'|t('kickback') %}
+
+{% block content %}
+    <h1 style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #e11d48;">{{ 'Fraud Alert'|t('kickback') }}</h1>
+    <p style="margin: 0 0 16px; font-size: 15px;">{{ 'A referral has been automatically flagged for potential fraud.'|t('kickback') }}</p>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 0 16px; font-size: 15px;">
+        <tr>
+            <td style="padding: 4px 16px 4px 0; font-weight: 600;">{{ 'Referral ID'|t('kickback') }}</td>
+            <td style="padding: 4px 0;">#{{ referralId }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 4px 16px 4px 0; font-weight: 600;">{{ 'Affiliate ID'|t('kickback') }}</td>
+            <td style="padding: 4px 0;">#{{ affiliateId }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 4px 16px 4px 0; font-weight: 600;">{{ 'Flags'|t('kickback') }}</td>
+            <td style="padding: 4px 0;">{{ flags }}</td>
+        </tr>
+    </table>
+    <p style="margin: 0; font-size: 15px;">{{ 'Please review this referral in the Kickback fraud detection panel.'|t('kickback') }}</p>
+{% endblock %}

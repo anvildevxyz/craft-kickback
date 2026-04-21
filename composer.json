@@ -1,0 +1,65 @@
+{
+  "name": "anvildev/craft-kickback",
+  "description": "Advanced Affiliate & Referral Marketing for Craft CMS — referral tracking, commission rules, multi-tier MLM, coupon attribution, PayPal/Stripe payouts, and a self-service affiliate portal.",
+  "type": "craft-plugin",
+  "license": "mit",
+  "keywords": [
+    "craftcms",
+    "affiliate",
+    "referral",
+    "commission",
+    "marketing",
+    "payout",
+    "mlm"
+  ],
+  "homepage": "https://github.com/anvildevxyz/craft-kickback",
+  "support": {
+    "email": "dev@anvil.xyz",
+    "docs": "https://github.com/anvildevxyz/craft-kickback/blob/main/README.md",
+    "issues": "https://github.com/anvildevxyz/craft-kickback/issues"
+  },
+  "require": {
+    "php": ">=8.2",
+    "craftcms/cms": "^5.8.0",
+    "paypal/paypal-server-sdk": "^2.2",
+    "stripe/stripe-php": "^20.0"
+  },
+  "require-dev": {
+    "craftcms/ecs": "dev-main",
+    "craftcms/phpstan": "dev-main",
+    "phpunit/phpunit": "^11.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "anvildev\\craftkickback\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "anvildev\\craftkickback\\tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "handle": "kickback",
+    "name": "Kickback",
+    "developer": "anvildev",
+    "documentationUrl": "https://github.com/anvildevxyz/craft-kickback/blob/main/README.md",
+    "class": "anvildev\\craftkickback\\KickBack"
+  },
+  "scripts": {
+    "test": "phpunit",
+    "check-cs": "ecs check --ansi",
+    "fix-cs": "ecs check --ansi --fix",
+    "phpstan": "phpstan --memory-limit=1G"
+  },
+  "config": {
+    "sort-packages": true,
+    "platform": {
+      "php": "8.2"
+    },
+    "allow-plugins": {
+      "yiisoft/yii2-composer": true,
+      "craftcms/plugin-installer": true
+    }
+  }
+}

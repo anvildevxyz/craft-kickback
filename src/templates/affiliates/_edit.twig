@@ -1,0 +1,445 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+{% set title = affiliate ? affiliate.title : 'affiliate.new'|t('kickback') %}
+{% set selectedSubnavItem = 'affiliates' %}
+
+{% set crumbs = [
+    { label: 'plugin.name'|t('kickback'), url: cpUrl('kickback') },
+    { label: 'nav.affiliates'|t('kickback'), url: cpUrl('kickback/affiliates') },
+] %}
+
+{% set currencyCode = craft.kickback.currency %}
+
+{% block content %}
+    {% do view.registerAssetBundle('anvildev\\craftkickback\\assets\\cp\\CpAssetBundle') %}
+
+    {% js %}
+        // Cmd/Ctrl+S submits the main save form. fullPageForm isn't used on this
+        // page because of sibling action forms, so Craft's built-in hotkey doesn't
+        // fire - we bind one ourselves against the form tagged with data-kb-main-save.
+        document.addEventListener('keydown', function(e) {
+            if ((e.metaKey || e.ctrlKey) && (e.key === 's' || e.key === 'S')) {
+                var form = document.querySelector('form[data-kb-main-save]');
+                if (form) {
+                    e.preventDefault();
+                    form.submit();
+                }
+            }
+        });
+    {% endjs %}
+
+    {# Not using fullPageForm because the page also renders independent forms
+       below (payout create, bulk-coupon generate, per-row coupon actions) that
+       post to different actions and can't legally nest inside a wrapping form.
+       Cmd+S is wired manually via the JS block at the bottom of the file. #}
+    <form method="post" accept-charset="UTF-8" data-kb-main-save>
+        {{ csrfInput() }}
+        {{ actionInput('kickback/affiliates/save') }}
+        {{ redirectInput('kickback/affiliates') }}
+        {% if affiliate and affiliate.id %}
+            {{ hiddenInput('affiliateId', affiliate.id) }}
+        {% endif %}
+
+        <div id="fields">
+            {{ forms.textField({
+                label: 'common.name'|t('kickback'),
+                id: 'title',
+                name: 'title',
+                value: affiliate ? affiliate.title : '',
+                required: true,
+            }) }}
+
+            {{ forms.textField({
+                label: 'affiliate.field.referralCode'|t('kickback'),
+                id: 'referralCode',
+                name: 'referralCode',
+                value: affiliate ? affiliate.referralCode : '',
+                required: true,
+            }) }}
+
+            {{ forms.selectField({
+                label: 'common.program'|t('kickback'),
+                id: 'programId',
+                name: 'programId',
+                value: affiliate ? affiliate.programId : '',
+                required: true,
+                options: [{ label: 'Select a program…'|t('kickback'), value: '' }]
+                    |merge(programs|map(p => { label: p.title, value: p.id })),
+            }) }}
+
+            {{ forms.elementSelectField({
+                label: 'User'|t('kickback'),
+                id: 'userSelect',
+                name: 'userSelect',
+                elementType: 'craft\\elements\\User',
+                elements: affiliate and affiliate.user ? [affiliate.user] : [],
+                limit: 1,
+                required: true,
+            }) }}
+
+            {# Status + commission override are gated on APPROVE_AFFILIATES in the
+               save action. Only show them to users who can actually submit them -
+               otherwise the controls render but silently no-op on save, which is
+               confusing. Viewers without the permission still see the current
+               status below so the page isn't just blank. #}
+            {% if currentUser.can('kickback-approveAffiliates') %}
+                {{ forms.selectField({
+                    label: 'common.status'|t('kickback'),
+                    id: 'affiliateStatus',
+                    name: 'affiliateStatus',
+                    value: affiliate ? affiliate.affiliateStatus : 'pending',
+                    options: [
+                        { label: 'affiliateStatus.pending'|t('kickback'), value: 'pending' },
+                        { label: 'affiliateStatus.active'|t('kickback'), value: 'active' },
+                        { label: 'affiliateStatus.suspended'|t('kickback'), value: 'suspended' },
+                        { label: 'affiliateStatus.rejected'|t('kickback'), value: 'rejected' },
+                    ],
+                }) }}
+
+                <hr>
+                <h2>{{ 'affiliate.field.commissionOverride'|t('kickback') }}</h2>
+
+                {{ forms.textField({
+                    label: 'affiliate.field.customRate'|t('kickback'),
+                    instructions: 'Leave blank to use the program default.'|t('kickback'),
+                    id: 'commissionRateOverride',
+                    name: 'commissionRateOverride',
+                    type: 'number',
+                    step: 0.01,
+                    value: affiliate ? affiliate.commissionRateOverride : '',
+                }) }}
+
+                {{ forms.selectField({
+                    label: 'common.rateType'|t('kickback'),
+                    id: 'commissionTypeOverride',
+                    name: 'commissionTypeOverride',
+                    value: affiliate ? affiliate.commissionTypeOverride : '',
+                    options: [
+                        { label: 'common.default'|t('kickback'), value: '' },
+                        { label: 'rateType.percentage'|t('kickback'), value: 'percentage' },
+                        { label: 'rateType.flat'|t('kickback'), value: 'flat' },
+                    ],
+                }) }}
+            {% elseif affiliate %}
+                {{ forms.field({
+                    label: 'common.status'|t('kickback'),
+                    instructions: 'You don’t have permission to change this status.'|t('kickback'),
+                }, '<span class="status ' ~ affiliate.statusColor ~ '"></span>' ~ (affiliate.affiliateStatus|t('kickback')|capitalize))|raw }}
+            {% endif %}
+
+            <hr>
+            <h2>{{ 'affiliate.field.payoutSettings'|t('kickback') }}</h2>
+
+            {{ forms.selectField({
+                label: 'affiliate.field.payoutMethod'|t('kickback'),
+                id: 'payoutMethod',
+                name: 'payoutMethod',
+                value: affiliate ? affiliate.payoutMethod : 'manual',
+                options: [
+                    { label: 'payoutMethod.manual'|t('kickback'), value: 'manual' },
+                    { label: 'payoutMethod.paypal'|t('kickback'), value: 'paypal' },
+                    { label: 'payoutMethod.stripe'|t('kickback'), value: 'stripe' },
+                ],
+            }) }}
+
+            {{ forms.textField({
+                label: 'affiliate.field.paypalEmail'|t('kickback'),
+                id: 'paypalEmail',
+                name: 'paypalEmail',
+                type: 'email',
+                value: affiliate ? affiliate.paypalEmail : '',
+            }) }}
+
+            {{ forms.textField({
+                label: 'affiliate.field.payoutThreshold'|t('kickback'),
+                id: 'payoutThreshold',
+                name: 'payoutThreshold',
+                type: 'number',
+                step: 0.01,
+                value: affiliate ? affiliate.payoutThreshold : 50,
+            }) }}
+
+            <hr>
+            <h2>{{ 'common.notes'|t('kickback') }}</h2>
+
+            {{ forms.textareaField({
+                id: 'notes',
+                name: 'notes',
+                rows: 4,
+                value: affiliate ? affiliate.notes : '',
+            }) }}
+        </div>
+
+        <div class="buttons">
+            <button type="submit" class="btn submit">{{ 'Save'|t('app') }}</button>
+        </div>
+    </form>
+
+    {% if affiliate and affiliate.id %}
+        {# Payout + bulk-coupon forms live outside the save form because they
+           post to different actions. Nesting them would break both submits. #}
+        <div class="pane" style="margin-top: 1.5rem;">
+            <h2>{{ 'Payout Status'|t('kickback') }}</h2>
+            <p>
+                <strong>{{ 'Pending balance'|t('kickback') }}:</strong>
+                {{ affiliate.pendingBalance|currency(currencyCode) }}
+            </p>
+
+            {% if currentUser.can('kickback-processPayouts') %}
+                {% if affiliate.pendingBalance >= settings.minimumPayoutAmount %}
+                    <form method="post" accept-charset="UTF-8">
+                        {{ csrfInput() }}
+                        {{ actionInput('kickback/payouts/create') }}
+                        {{ redirectInput('kickback/affiliates/' ~ affiliate.id) }}
+                        {{ hiddenInput('affiliateId', affiliate.id) }}
+                        <div class="buttons">
+                            <button type="submit" class="btn submit">
+                                {{ 'Create payout ({amount})'|t('kickback', {
+                                    amount: affiliate.pendingBalance|currency(currencyCode),
+                                }) }}
+                            </button>
+                        </div>
+                    </form>
+                {% else %}
+                    <p class="light">
+                        {{ 'Below minimum payout ({min} required)'|t('kickback', {
+                            min: settings.minimumPayoutAmount|currency(currencyCode),
+                        }) }}
+                    </p>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        {% if coupons|length %}
+            <div class="pane" style="margin-top: 1.5rem;">
+                <div class="flex flex-justify" style="align-items: center;">
+                    <h2 style="margin: 0;">{{ 'Coupons'|t('kickback') }}</h2>
+                    <a href="{{ cpUrl('kickback/affiliates/export-coupons', { affiliateId: affiliate.id }) }}" class="btn small">
+                        {{ 'Export CSV'|t('kickback') }}
+                    </a>
+                </div>
+
+                <form method="post" accept-charset="UTF-8" id="kb-coupons-bulk-form" style="margin-top: 1rem;">
+                    {{ csrfInput() }}
+                    {{ actionInput('kickback/affiliates/bulk-coupon-action') }}
+                    {{ redirectInput('kickback/affiliates/' ~ affiliate.id) }}
+
+                    <table class="data fullwidth">
+                        <thead>
+                            <tr>
+                                <th scope="col" style="width: 24px;">
+                                    <input type="checkbox" id="kb-coupons-select-all" aria-label="{{ 'Select all'|t('app') }}">
+                                </th>
+                                <th scope="col">{{ 'Code'|t('kickback') }}</th>
+                                <th scope="col">{{ 'Uses'|t('kickback') }}</th>
+                                <th scope="col">{{ 'common.status'|t('kickback') }}</th>
+                                <th scope="col">{{ 'Created'|t('kickback') }}</th>
+                                <th scope="col" class="thin">{{ 'Actions'|t('kickback') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for coupon in coupons %}
+                                {% set atMax = coupon.maxUses is not null and coupon.uses >= coupon.maxUses %}
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" name="couponIds[]" value="{{ coupon.id }}" class="kb-coupon-check" aria-label="{{ 'Select {code}'|t('kickback', { code: coupon.code }) }}">
+                                    </td>
+                                    <td>
+                                        <code>{{ coupon.code }}</code>
+                                        <button type="button" class="btn small kb-copy-btn" data-clipboard="{{ coupon.code }}" title="{{ 'Copy code'|t('kickback') }}" style="margin-left: 0.5rem;">
+                                            {{ 'common.copy'|t('kickback') }}
+                                        </button>
+                                    </td>
+                                    <td>
+                                        {{ coupon.uses }}{% if coupon.maxUses is not null %} / {{ coupon.maxUses }}{% endif %}
+                                    </td>
+                                    <td>
+                                        {% if not coupon.enabled %}
+                                            <span class="status"></span>{{ 'Disabled'|t('kickback') }}
+                                        {% elseif coupon.uses == 0 %}
+                                            <span class="status"></span>{{ 'Unused'|t('kickback') }}
+                                        {% elseif atMax %}
+                                            <span class="status red"></span>{{ 'Exhausted'|t('kickback') }}
+                                        {% else %}
+                                            <span class="status green"></span>{{ 'affiliateStatus.active'|t('kickback') }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ coupon.dateCreated|datetime('short') }}</td>
+                                    <td>
+                                        {# Delete is only safe for unused coupons; used ones must
+                                           soft-disable to preserve order history references. #}
+                                        {% if coupon.uses == 0 %}
+                                            <button
+                                                type="submit"
+                                                form="kb-coupon-delete-{{ coupon.id }}"
+                                                class="btn small"
+                                                data-confirm="{{ 'Delete coupon {code}? This cannot be undone.'|t('kickback', { code: coupon.code }) }}"
+                                            >{{ 'Delete'|t('kickback') }}</button>
+                                        {% elseif coupon.enabled %}
+                                            <button
+                                                type="submit"
+                                                form="kb-coupon-disable-{{ coupon.id }}"
+                                                class="btn small"
+                                                data-confirm="{{ 'Disable coupon {code}? It has been used {n} time(s) and cannot be hard-deleted.'|t('kickback', { code: coupon.code, n: coupon.uses }) }}"
+                                            >{{ 'Disable'|t('kickback') }}</button>
+                                        {% else %}
+                                            <span class="light">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <div class="buttons" style="margin-top: 1rem;">
+                        <button
+                            type="submit"
+                            name="mode"
+                            value="delete"
+                            class="btn"
+                            data-confirm="{{ 'Delete the selected coupons? Used coupons will be skipped.'|t('kickback') }}"
+                        >{{ 'Delete selected'|t('kickback') }}</button>
+                        <button
+                            type="submit"
+                            name="mode"
+                            value="disable"
+                            class="btn"
+                            data-confirm="{{ 'Disable the selected coupons?'|t('kickback') }}"
+                        >{{ 'Disable selected'|t('kickback') }}</button>
+                    </div>
+                </form>
+
+                {# Per-row delete/disable forms, lifted out so the buttons inside
+                   the bulk form (which has its own action) can submit to a
+                   different endpoint via the form="..." attribute. #}
+                {% for coupon in coupons %}
+                    {% if coupon.uses == 0 %}
+                        <form method="post" accept-charset="UTF-8" id="kb-coupon-delete-{{ coupon.id }}" style="display: none;">
+                            {{ csrfInput() }}
+                            {{ actionInput('kickback/affiliates/delete-coupon') }}
+                            {{ redirectInput('kickback/affiliates/' ~ affiliate.id) }}
+                            {{ hiddenInput('couponId', coupon.id) }}
+                        </form>
+                    {% elseif coupon.enabled %}
+                        <form method="post" accept-charset="UTF-8" id="kb-coupon-disable-{{ coupon.id }}" style="display: none;">
+                            {{ csrfInput() }}
+                            {{ actionInput('kickback/affiliates/disable-coupon') }}
+                            {{ redirectInput('kickback/affiliates/' ~ affiliate.id) }}
+                            {{ hiddenInput('couponId', coupon.id) }}
+                        </form>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            {% js %}
+                (function() {
+                    // Confirm dialogs using the browser's native confirm() - Craft has
+                    // a fancier modal helper but it's overkill for these form posts.
+                    document.querySelectorAll('[data-confirm]').forEach(function(el) {
+                        el.addEventListener('click', function(e) {
+                            if (!window.confirm(el.getAttribute('data-confirm'))) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }
+                        });
+                    });
+
+                    // Select-all toggles every per-row checkbox.
+                    var selectAll = document.getElementById('kb-coupons-select-all');
+                    if (selectAll) {
+                        selectAll.addEventListener('change', function() {
+                            document.querySelectorAll('.kb-coupon-check').forEach(function(cb) {
+                                cb.checked = selectAll.checked;
+                            });
+                        });
+                    }
+
+                    // Copy-to-clipboard buttons.
+                    document.querySelectorAll('.kb-copy-btn').forEach(function(btn) {
+                        btn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            var text = btn.getAttribute('data-clipboard');
+                            if (navigator.clipboard) {
+                                navigator.clipboard.writeText(text).then(function() {
+                                    var orig = btn.textContent;
+                                    btn.textContent = '✓';
+                                    setTimeout(function() { btn.textContent = orig; }, 1200);
+                                });
+                            }
+                        });
+                    });
+                })();
+            {% endjs %}
+        {% endif %}
+
+        {% if currentUser.can('kickback-manageAffiliates') and not couponCreationAllowed and couponCreationBlockReason %}
+            <div class="pane" style="margin-top: 1.5rem;">
+                <h2>{{ 'Bulk Generate Coupons'|t('kickback') }}</h2>
+                <p class="light">{{ couponCreationBlockReason }}</p>
+            </div>
+        {% endif %}
+
+        {% if currentUser.can('kickback-manageAffiliates') and couponCreationAllowed %}
+            <div class="pane" style="margin-top: 1.5rem;">
+                <h2>{{ 'Bulk Generate Coupons'|t('kickback') }}</h2>
+                <p class="light">
+                    {{ 'Creates N Commerce-backed coupons in one transaction. Codes follow the prefix with a zero-padded serial (e.g. LAUNCH001).'|t('kickback') }}
+                </p>
+
+                <form method="post" accept-charset="UTF-8">
+                    {{ csrfInput() }}
+                    {{ actionInput('kickback/affiliates/bulk-generate-coupons') }}
+                    {{ redirectInput('kickback/affiliates/' ~ affiliate.id) }}
+                    {{ hiddenInput('affiliateId', affiliate.id) }}
+
+                    {{ forms.textField({
+                        label: 'Prefix'|t('kickback'),
+                        instructions: 'Each generated code starts with this string, followed by a zero-padded serial (e.g. LAUNCH001, LAUNCH002, …).'|t('kickback'),
+                        id: 'bulkPrefix',
+                        name: 'prefix',
+                        placeholder: 'LAUNCH',
+                        required: true,
+                    }) }}
+
+                    {{ forms.textField({
+                        label: 'Number of Coupons'|t('kickback'),
+                        instructions: 'How many distinct coupon codes to create in this batch.'|t('kickback'),
+                        id: 'bulkCount',
+                        name: 'count',
+                        type: 'number',
+                        min: 1,
+                        max: 500,
+                        value: 10,
+                        required: true,
+                    }) }}
+
+                    {{ forms.textField({
+                        label: 'Discount %'|t('kickback'),
+                        instructions: 'Percent off the order subtotal that each generated coupon will apply.'|t('kickback'),
+                        id: 'bulkDiscount',
+                        name: 'discount',
+                        type: 'number',
+                        min: 0,
+                        max: 100,
+                        step: 0.1,
+                        value: 10,
+                    }) }}
+
+                    {{ forms.textField({
+                        label: 'Max Uses Per Coupon'|t('kickback'),
+                        instructions: 'How many times each individual coupon can be redeemed before it stops working. 0 = unlimited.'|t('kickback'),
+                        id: 'bulkMaxUses',
+                        name: 'maxUses',
+                        type: 'number',
+                        min: 0,
+                        value: 0,
+                    }) }}
+
+                    <div class="buttons">
+                        <button type="submit" class="btn submit">{{ 'Generate Coupons'|t('kickback') }}</button>
+                    </div>
+                </form>
+            </div>
+        {% endif %}
+    {% endif %}
+{% endblock %}

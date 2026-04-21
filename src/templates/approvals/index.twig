@@ -1,0 +1,85 @@
+{% extends '_layouts/cp' %}
+
+{% set title = 'Verifications'|t('kickback') %}
+{% set selectedSubnavItem = 'approvals' %}
+
+{% set crumbs = [] %}
+
+{% set tabs = {
+    mine: {
+        label: 'Assigned to me'|t('kickback'),
+        url: url('kickback/approvals', { tab: 'mine' }),
+    },
+    all: {
+        label: 'All pending'|t('kickback'),
+        url: url('kickback/approvals', { tab: 'all' }),
+    },
+} %}
+
+{% set selectedTab = tab %}
+
+{% block content %}
+    {% if rows|length == 0 %}
+        <div class="zilch">
+            <p>{{ 'No payouts are waiting for your review.'|t('kickback') }}</p>
+        </div>
+    {% else %}
+        <table class="data fullwidth">
+            <thead>
+                <tr>
+                    <th>{{ 'Target'|t('kickback') }}</th>
+                    <th>{{ 'common.amount'|t('kickback') }}</th>
+                    <th>{{ 'Method'|t('kickback') }}</th>
+                    <th>{{ 'affiliate.one'|t('kickback') }}</th>
+                    <th>{{ 'Created by'|t('kickback') }}</th>
+                    <th>{{ 'Requested'|t('kickback') }}</th>
+                    <th>{{ 'Assigned to'|t('kickback') }}</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                    {% set approval = row.approval %}
+                    {% set details = row.details %}
+                    <tr>
+                        <td>
+                            <a href="{{ row.url }}">{{ row.label }}</a>
+                        </td>
+                        <td>{{ details.amount ?? '-' }}</td>
+                        <td>{{ details.method ?? '-' }}</td>
+                        <td>{{ details.affiliate ?? '-' }}</td>
+                        <td>
+                            {% if details.createdBy %}
+                                {{ details.createdBy }}
+                            {% else %}
+                                <span class="light">{{ 'System'|t('kickback') }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ approval.dateCreated|date('short') }}</td>
+                        <td>
+                            {% if approval.requestedUserId %}
+                                {{ row.requestedUserName ?? '-' }}
+                            {% else %}
+                                <span class="light">{{ 'Unassigned'|t('kickback') }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="thin">
+                            <form method="post" accept-charset="UTF-8" style="display:inline-block;">
+                                {{ csrfInput() }}
+                                {{ actionInput('kickback/approvals/approve') }}
+                                {{ hiddenInput('approvalId', approval.id) }}
+                                {{ redirectInput('kickback/approvals?tab=' ~ (tab ?? 'mine')) }}
+                                <button type="submit" class="btn submit small">
+                                    {{ 'Approve'|t('kickback') }}
+                                </button>
+                            </form>
+                            <a href="{{ row.url }}" class="btn small">
+                                {{ 'common.review'|t('kickback') }}
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

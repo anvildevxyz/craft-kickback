@@ -1,0 +1,173 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+{% set title = rule ? rule.name : 'rule.newLong'|t('kickback') %}
+{% set selectedSubnavItem = 'commission-rules' %}
+{% set fullPageForm = true %}
+
+{% set currentType = rule ? rule.type : 'product' %}
+
+{% block content %}
+    {% do view.registerAssetBundle('anvildev\\craftkickback\\assets\\cp\\CpAssetBundle') %}
+    {{ actionInput('kickback/commission-rules/save') }}
+    {{ redirectInput('kickback/commission-rules') }}
+
+    {% if rule and rule.id %}
+        {{ hiddenInput('ruleId', rule.id) }}
+    {% endif %}
+
+    <div id="fields">
+        <div class="field">
+            <div class="heading">
+                <label for="name">{{ 'rule.field.name'|t('kickback') }}</label>
+            </div>
+            <div class="input">
+                <input type="text" id="name" name="name" value="{{ rule ? rule.name : '' }}" class="text fullwidth" required>
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="heading">
+                <label for="programId">{{ 'common.program'|t('kickback') }}</label>
+            </div>
+            <div class="input">
+                <div class="select">
+                    <select id="programId" name="programId" required>
+                        {% for program in programs %}
+                            <option value="{{ program.id }}" {{ rule and rule.programId == program.id ? 'selected' }}>{{ program.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        {{ forms.selectField({
+            label: 'rule.field.type'|t('kickback'),
+            instructions: 'Determines how and when this rule is matched.'|t('kickback'),
+            id: 'type',
+            name: 'type',
+            value: currentType,
+            required: true,
+            options: ruleTypes|map((label, value) => { label: label, value: value }),
+        }) }}
+
+        <hr>
+        <h2>{{ 'common.commission'|t('kickback') }}</h2>
+
+        <div class="flex" style="gap: 1rem;">
+            <div class="field" style="flex: 1;">
+                <div class="heading">
+                    <label for="commissionRate">{{ 'common.rate'|t('kickback') }}</label>
+                </div>
+                <div class="input">
+                    <input type="number" step="0.01" min="0" id="commissionRate" name="commissionRate" value="{{ rule ? rule.commissionRate : '' }}" class="text fullwidth" required>
+                </div>
+            </div>
+            <div class="field" style="flex: 1;">
+                <div class="heading">
+                    <label for="commissionType">{{ 'common.rateType'|t('kickback') }}</label>
+                </div>
+                <div class="input">
+                    <div class="select">
+                        <select id="commissionType" name="commissionType">
+                            <option value="percentage" {{ rule and rule.commissionType == 'percentage' ? 'selected' }}>{{ 'Percentage of order'|t('kickback') }}</option>
+                            <option value="flat" {{ rule and rule.commissionType == 'flat' ? 'selected' }}>{{ 'Fixed amount per order'|t('kickback') }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# ─ Product / Category fields ─ #}
+        <div id="type-fields-targeting" {% if currentType not in ['product', 'category'] %}class="hidden"{% endif %}>
+            <hr>
+            <h2>{{ 'common.targeting'|t('kickback') }}</h2>
+
+            <div class="field">
+                <div class="heading">
+                    <label for="targetId">{{ 'common.targetId'|t('kickback') }}</label>
+                    <div class="instructions"><p>{{ 'The Commerce product or category ID this rule applies to.'|t('kickback') }}</p></div>
+                </div>
+                <div class="input">
+                    <input type="number" id="targetId" name="targetId" value="{{ rule and rule.targetId ? rule.targetId : '' }}" class="text fullwidth">
+                </div>
+            </div>
+        </div>
+
+        {# ─ Tiered fields ─ #}
+        <div id="type-fields-tiered" {% if currentType != 'tiered' %}class="hidden"{% endif %}>
+            <hr>
+            <h2>{{ 'Tier Conditions'|t('kickback') }}</h2>
+
+            <div class="field">
+                <div class="heading">
+                    <label for="tierThreshold">{{ 'Minimum Referrals'|t('kickback') }}</label>
+                    <div class="instructions"><p>{{ 'Affiliate must have at least this many approved referrals for the rule to activate.'|t('kickback') }}</p></div>
+                </div>
+                <div class="input">
+                    <input type="number" min="0" id="tierThreshold" name="tierThreshold" value="{{ rule and rule.tierThreshold ? rule.tierThreshold : '' }}" class="text fullwidth">
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="heading">
+                    <label for="lookbackDays-tiered">{{ 'Lookback Window (days)'|t('kickback') }}</label>
+                    <div class="instructions"><p>{{ 'Only count referrals within this many days. Leave empty to count all time.'|t('kickback') }}</p></div>
+                </div>
+                <div class="input">
+                    <input type="number" min="1" id="lookbackDays-tiered" name="lookbackDays" value="{{ rule and rule.lookbackDays ? rule.lookbackDays : '' }}" class="text fullwidth">
+                </div>
+            </div>
+        </div>
+
+        {# ─ MLM Tier fields ─ #}
+        <div id="type-fields-mlm_tier" {% if currentType != 'mlm_tier' %}class="hidden"{% endif %}>
+            <hr>
+            <h2>{{ 'rule.type.mlmTier'|t('kickback') }}</h2>
+
+            <div class="field">
+                <div class="heading">
+                    <label for="tierLevel">{{ 'common.tierLevel'|t('kickback') }}</label>
+                    <div class="instructions"><p>{{ 'Which level in the recruiter chain earns this override (2 = direct recruiter, 3 = recruiter\'s recruiter, etc.).'|t('kickback') }}</p></div>
+                </div>
+                <div class="input">
+                    <input type="number" min="2" id="tierLevel" name="tierLevel" value="{{ rule and rule.tierLevel ? rule.tierLevel : '' }}" class="text fullwidth">
+                </div>
+            </div>
+        </div>
+
+        {# ─ Bonus has no extra fields - conditions (date window) are set via JSON for now ─ #}
+
+        <hr>
+        <h2>{{ 'common.priority'|t('kickback') }}</h2>
+
+        <div class="field">
+            <div class="heading">
+                <label for="priority">{{ 'common.priority'|t('kickback') }}</label>
+                <div class="instructions"><p>{{ 'When multiple rules of the same type match, the highest priority wins.'|t('kickback') }}</p></div>
+            </div>
+            <div class="input">
+                <input type="number" id="priority" name="priority" value="{{ rule ? rule.priority : 0 }}" class="text fullwidth">
+            </div>
+        </div>
+    </div>
+
+    {% js %}
+        (function() {
+            var typeSelect = document.getElementById('type');
+            var sections = {
+                targeting: document.getElementById('type-fields-targeting'),
+                tiered: document.getElementById('type-fields-tiered'),
+                mlm_tier: document.getElementById('type-fields-mlm_tier'),
+            };
+
+            function update() {
+                var type = typeSelect.value;
+                sections.targeting.classList.toggle('hidden', type !== 'product' && type !== 'category');
+                sections.tiered.classList.toggle('hidden', type !== 'tiered');
+                sections.mlm_tier.classList.toggle('hidden', type !== 'mlm_tier');
+            }
+
+            typeSelect.addEventListener('change', update);
+        })();
+    {% endjs %}
+{% endblock %}

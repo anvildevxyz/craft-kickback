@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Become an Affiliate - {{ siteName }}</title>
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #1a1a1a;
+            background: #f5f5f5;
+            line-height: 1.5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .kb-register {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .kb-register h1 {
+            font-size: 1.375rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .kb-register .kb-subtitle {
+            font-size: 0.875rem;
+            color: #666;
+            margin-bottom: 1.75rem;
+        }
+
+        .kb-form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .kb-form-group label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: #444;
+            margin-bottom: 0.375rem;
+        }
+
+        .kb-form-group input[type="text"],
+        .kb-form-group input[type="email"],
+        .kb-form-group input[type="password"],
+        .kb-form-group select {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d0d0d0;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            color: #333;
+            background: #fff;
+        }
+
+        .kb-form-row {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .kb-form-row > .kb-form-group {
+            flex: 1;
+        }
+
+        .kb-divider {
+            height: 1px;
+            background: #e0e0e0;
+            margin: 1.5rem 0;
+        }
+
+        .kb-section-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 0.75rem;
+        }
+
+        /* Honeypot - visually hidden but left in the DOM so bots find it */
+        .kb-honeypot {
+            position: absolute;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+
+        .kb-form-group input:focus,
+        .kb-form-group select:focus {
+            outline: none;
+            border-color: #1a56db;
+            box-shadow: 0 0 0 2px rgba(26, 86, 219, 0.15);
+        }
+
+        .kb-form-help {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+
+        .kb-btn {
+            display: inline-block;
+            padding: 0.625rem 1.25rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.15s;
+            width: 100%;
+            text-align: center;
+        }
+
+        .kb-btn-primary {
+            background: #1a56db;
+            color: #fff;
+        }
+
+        .kb-btn-primary:hover {
+            background: #1648b8;
+        }
+
+        .kb-flash {
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            margin-bottom: 1.25rem;
+            font-size: 0.875rem;
+        }
+
+        .kb-flash-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+
+        .kb-flash-error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+
+        .kb-footer {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: 0.8125rem;
+        }
+
+        .kb-footer a {
+            color: #1a56db;
+            text-decoration: none;
+        }
+
+        .kb-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="kb-register">
+        <h1>Become an Affiliate</h1>
+        <p class="kb-subtitle">Apply to join our affiliate program and start earning commissions.</p>
+
+        {% if craft.app.session.hasFlash('error') %}
+            <div class="kb-flash kb-flash-error">{{ craft.app.session.getFlash('error') }}</div>
+        {% endif %}
+
+        {% if craft.app.session.hasFlash('notice') %}
+            <div class="kb-flash kb-flash-success">{{ craft.app.session.getFlash('notice') }}</div>
+        {% endif %}
+
+        <form method="post">
+            {{ csrfInput() }}
+            {{ actionInput('kickback/registration/register') }}
+
+            {# Honeypot - real users never see or fill this; bots typically do. #}
+            <div class="kb-honeypot" aria-hidden="true">
+                <label for="kb-website">Website (leave blank)</label>
+                <input type="text" name="website" id="kb-website" tabindex="-1" autocomplete="off">
+            </div>
+
+            {% if currentUser is null %}
+                <p class="kb-section-label">Account</p>
+
+                <div class="kb-form-row">
+                    <div class="kb-form-group">
+                        <label for="kb-firstName">First Name</label>
+                        <input type="text" name="firstName" id="kb-firstName" required autocomplete="given-name">
+                    </div>
+                    <div class="kb-form-group">
+                        <label for="kb-lastName">Last Name</label>
+                        <input type="text" name="lastName" id="kb-lastName" required autocomplete="family-name">
+                    </div>
+                </div>
+
+                <div class="kb-form-group">
+                    <label for="kb-email">Email</label>
+                    <input type="email" name="email" id="kb-email" required autocomplete="email" placeholder="you@example.com">
+                </div>
+
+                <div class="kb-form-group">
+                    <label for="kb-password">Password</label>
+                    <input type="password" name="password" id="kb-password" required autocomplete="new-password" minlength="6">
+                    <p class="kb-form-help">Minimum 6 characters. You'll use this to log in to your portal.</p>
+                </div>
+
+                <div class="kb-divider"></div>
+                <p class="kb-section-label">Affiliate Program</p>
+            {% endif %}
+
+            {% if programs is defined and programs|length > 1 %}
+                <div class="kb-form-group">
+                    <label for="kb-program">Program</label>
+                    <select name="programId" id="kb-program">
+                        {% for program in programs %}
+                            <option value="{{ program.id }}">{{ program.name }}{% if program.description %} - {{ program.description }}{% endif %}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            {% elseif programs is defined and programs|length == 1 %}
+                <input type="hidden" name="programId" value="{{ programs[0].id }}">
+            {% endif %}
+
+            <div class="kb-form-group">
+                <label for="kb-payout-method">Preferred Payout Method</label>
+                <select name="payoutMethod" id="kb-payout-method" onchange="kbTogglePaypal()">
+                    <option value="manual">Manual</option>
+                    <option value="paypal">PayPal</option>
+                    <option value="stripe">Stripe</option>
+                </select>
+            </div>
+
+            <div class="kb-form-group" id="kb-paypal-group" style="display: none;">
+                <label for="kb-paypal-email">PayPal Email</label>
+                <input type="email" name="paypalEmail" id="kb-paypal-email" placeholder="you@example.com">
+                <p class="kb-form-help">Required if you select PayPal as your payout method.</p>
+            </div>
+
+            {% if recruiterCode is defined and recruiterCode %}
+                <div class="kb-form-group">
+                    <label for="kb-recruiter">Referred by</label>
+                    <input type="text" name="parentReferralCode" id="kb-recruiter" value="{{ recruiterCode }}" readonly>
+                    <p class="kb-form-help">You were invited by an existing affiliate - their referral code is locked in above.</p>
+                </div>
+            {% endif %}
+
+            <button type="submit" class="kb-btn kb-btn-primary">Apply as Affiliate</button>
+        </form>
+
+        <div class="kb-footer">
+            <a href="/">Back to site</a>
+        </div>
+    </div>
+
+    <script>
+        function kbTogglePaypal() {
+            var method = document.getElementById('kb-payout-method').value;
+            var paypalGroup = document.getElementById('kb-paypal-group');
+            paypalGroup.style.display = method === 'paypal' ? '' : 'none';
+        }
+    </script>
+</body>
+</html>

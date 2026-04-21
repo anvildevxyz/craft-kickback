@@ -1,0 +1,52 @@
+{% do view.registerAssetBundle('anvildev\\craftkickback\\assets\\portal\\PortalAssetBundle') %}
+{% set portalBase = '/' ~ settings.currentSitePortalPath %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Affiliate Portal{% endblock %} - {{ siteName }}</title>
+    {{ head() }}
+    <style>{% block styles %}{% endblock %}</style>
+</head>
+<body>
+    {{ beginBody() }}
+    <div class="kb-portal">
+        <aside class="kb-sidebar">
+            <div class="kb-sidebar-header">
+                <h2>Affiliate Portal</h2>
+                {% if affiliate is defined and affiliate %}
+                    <p>{{ affiliate.getUser().friendlyName ?? affiliate.getUser().email }}</p>
+                {% endif %}
+            </div>
+            <ul class="kb-nav">
+                <li><a href="{{ portalBase }}" class="{% if activeNav is defined and activeNav == 'dashboard' %}kb-active{% endif %}">Dashboard</a></li>
+                <li><a href="{{ portalBase }}/links" class="{% if activeNav is defined and activeNav == 'links' %}kb-active{% endif %}">Links</a></li>
+                <li><a href="{{ portalBase }}/referrals" class="{% if activeNav is defined and activeNav == 'referrals' %}kb-active{% endif %}">Referrals</a></li>
+                <li><a href="{{ portalBase }}/commissions" class="{% if activeNav is defined and activeNav == 'commissions' %}kb-active{% endif %}">Commissions</a></li>
+                <li><a href="{{ portalBase }}/coupons" class="{% if activeNav is defined and activeNav == 'coupons' %}kb-active{% endif %}">Coupons</a></li>
+                {% if settings.enableMultiTier %}
+                    <li><a href="{{ portalBase }}/team" class="{% if activeNav is defined and activeNav == 'team' %}kb-active{% endif %}">Team</a></li>
+                {% endif %}
+                <li><a href="{{ portalBase }}/settings" class="{% if activeNav is defined and activeNav == 'settings' %}kb-active{% endif %}">Settings</a></li>
+            </ul>
+            <div class="kb-sidebar-footer">
+                <a href="/">Back to site</a>
+            </div>
+        </aside>
+        <main class="kb-main">
+            {% if craft.app.session.hasFlash('notice') %}
+                <div class="kb-flash kb-flash-success">{{ craft.app.session.getFlash('notice') }}</div>
+            {% endif %}
+            {% if craft.app.session.hasFlash('error') %}
+                <div class="kb-flash kb-flash-error">{{ craft.app.session.getFlash('error') }}</div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    {% block scripts %}{% endblock %}
+    {{ endBody() }}
+</body>
+</html>

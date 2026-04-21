@@ -1,0 +1,12 @@
+{% extends '_layouts/elementindex' %}
+{% set title = 'nav.programs'|t('kickback') %}
+{% set selectedSubnavItem = 'programs' %}
+{% set elementType = 'anvildev\\craftkickback\\elements\\ProgramElement' %}
+
+{% block actionButton %}
+    {% if currentUser.can('kickback-managePrograms') %}
+        <a href="{{ url('kickback/programs/new') }}" class="btn submit add icon">
+            {{ 'program.new'|t('kickback') }}
+        </a>
+    {% endif %}
+{% endblock %}

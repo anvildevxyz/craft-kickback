@@ -1,0 +1,113 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+{% set title = 'Referral #{id}'|t('kickback', { id: referral.id }) %}
+{% set selectedSubnavItem = 'referrals' %}
+{% set fullPageForm = false %}
+
+{% set crumbs = [
+    { label: 'plugin.name'|t('kickback'), url: cpUrl('kickback') },
+    { label: 'nav.referrals'|t('kickback'), url: cpUrl('kickback/referrals') },
+] %}
+
+{% set currencyCode = craft.kickback.currency %}
+{% set fraudFlagsList = referral.fraudFlagsList %}
+
+{% block actionButton %}
+    {% if currentUser.can('kickback-approveReferrals') and referral.referralStatus in ['pending', 'flagged'] %}
+        <div class="buttons">
+            <form method="post" accept-charset="UTF-8">
+                {{ csrfInput() }}
+                {{ actionInput('kickback/referrals/approve') }}
+                {{ redirectInput('kickback/referrals/' ~ referral.id) }}
+                {{ hiddenInput('referralId', referral.id) }}
+                <button type="submit" class="btn submit">{{ 'Approve'|t('kickback') }}</button>
+            </form>
+            <form method="post" accept-charset="UTF-8">
+                {{ csrfInput() }}
+                {{ actionInput('kickback/referrals/reject') }}
+                {{ redirectInput('kickback/referrals/' ~ referral.id) }}
+                {{ hiddenInput('referralId', referral.id) }}
+                <button type="submit" class="btn">{{ 'Reject'|t('kickback') }}</button>
+            </form>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div id="fields">
+        {{ forms.field({ label: 'common.status'|t('kickback') }, '<span class="status ' ~ referral.statusColor ~ '"></span>' ~ (referral.referralStatus|t('kickback')|capitalize))|raw }}
+
+        {% if referral.referralStatus == 'flagged' and not currentUser.can('kickback-approveReferrals') %}
+            <p class="light">
+                {{ 'This referral has been flagged for fraud review. Contact an administrator to approve or reject it.'|t('kickback') }}
+            </p>
+        {% endif %}
+
+        <hr>
+        <h2>{{ 'Details'|t('kickback') }}</h2>
+
+        {% set affiliateValue = affiliate
+            ? ('<a href="' ~ affiliate.cpEditUrl ~ '">' ~ affiliate.title|e ~ '</a>')
+            : '<span class="light">-</span>' %}
+        {{ forms.field({ label: 'affiliate.one'|t('kickback') }, affiliateValue)|raw }}
+
+        {{ forms.field({ label: 'common.program'|t('kickback') }, referral.programId ?? '-') }}
+        {{ forms.field({ label: 'common.customerEmail'|t('kickback') }, referral.customerEmail ?? '-') }}
+        {{ forms.field({ label: 'referral.field.orderSubtotal'|t('kickback') }, referral.orderSubtotal|currency(currencyCode)) }}
+        {{ forms.field({ label: 'Attribution Method'|t('kickback') }, referral.attributionMethod|replace({'_': ' '})|capitalize) }}
+
+        {% if referral.couponCode %}
+            {{ forms.field({ label: 'Coupon Code'|t('kickback') }, '<code>' ~ referral.couponCode|e ~ '</code>')|raw }}
+        {% endif %}
+        {% if referral.subId %}
+            {{ forms.field({ label: 'SubID'|t('kickback') }, '<code>' ~ referral.subId|e ~ '</code>')|raw }}
+        {% endif %}
+        {% if referral.clickId %}
+            {{ forms.field({ label: 'Click ID'|t('kickback') }, '<code>' ~ referral.clickId|e ~ '</code>')|raw }}
+        {% endif %}
+
+        {% if fraudFlagsList is not empty %}
+            <hr>
+            <h2>{{ 'fraud.flags'|t('kickback') }}</h2>
+            <ul>
+                {% for flag in fraudFlagsList %}
+                    <li><code>{{ flag }}</code></li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block details %}
+    <div class="meta read-only">
+        <div class="data">
+            <h5 class="heading">{{ 'ID'|t('app') }}</h5>
+            <div class="value">{{ referral.id }}</div>
+        </div>
+        <div class="data">
+            <h5 class="heading">{{ 'Date Created'|t('app') }}</h5>
+            <div class="value">{{ referral.dateCreated ? referral.dateCreated|datetime('short') : '-' }}</div>
+        </div>
+        {% if referral.dateApproved %}
+            <div class="data">
+                <h5 class="heading">{{ 'common.dateApproved'|t('kickback') }}</h5>
+                <div class="value">{{ referral.dateApproved|datetime('short') }}</div>
+            </div>
+        {% endif %}
+        {% if referral.datePaid %}
+            <div class="data">
+                <h5 class="heading">{{ 'Date Paid'|t('kickback') }}</h5>
+                <div class="value">{{ referral.datePaid|datetime('short') }}</div>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if referral.referralResolutionTrace %}
+        <div class="meta">
+            <details>
+                <summary style="cursor: pointer; font-weight: bold; padding: 0.5rem 0;">{{ 'Resolution Trace (debug)'|t('kickback') }}</summary>
+                <pre style="white-space: pre-wrap; word-break: break-word; background: #f4f4f4; padding: 0.75rem; border-radius: 4px; margin-top: 0.5rem; font-size: 11px;">{{ referral.formattedResolutionTrace }}</pre>
+            </details>
+        </div>
+    {% endif %}
+{% endblock %}

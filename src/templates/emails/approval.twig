@@ -1,0 +1,14 @@
+{% extends 'kickback/emails/_base' %}
+
+{% set title = 'Affiliate Approved'|t('kickback') %}
+
+{% block content %}
+    <h1 style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">{{ 'Welcome aboard!'|t('kickback') }}</h1>
+    <p style="margin: 0 0 16px; font-size: 15px;">{{ 'Hi {name},'|t('kickback', { name: name }) }}</p>
+    <p style="margin: 0 0 16px; font-size: 15px;">{{ 'Great news - your affiliate application has been approved! You can now access your affiliate portal and start earning commissions.'|t('kickback') }}</p>
+    {% if recruiterName %}
+        <p style="margin: 0 0 16px; font-size: 15px;">{{ 'You were referred by {recruiterName} - they\'ll be earning override commissions on your sales.'|t('kickback', { recruiterName: recruiterName }) }}</p>
+    {% endif %}
+    <p style="margin: 0 0 24px; font-size: 15px;">{{ 'Visit your portal to get started:'|t('kickback') }}</p>
+    <a href="{{ portalUrl }}" style="display: inline-block; padding: 12px 24px; background-color: #1a1a1a; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 600;">{{ 'Go to Portal'|t('kickback') }}</a>
+{% endblock %}

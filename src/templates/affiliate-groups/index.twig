@@ -1,0 +1,12 @@
+{% extends '_layouts/elementindex' %}
+{% set title = 'nav.affiliateGroups'|t('kickback') %}
+{% set selectedSubnavItem = 'affiliate-groups' %}
+{% set elementType = 'anvildev\\craftkickback\\elements\\AffiliateGroupElement' %}
+
+{% block actionButton %}
+    {% if currentUser.can('kickback-manageAffiliates') %}
+        <a href="{{ url('kickback/affiliate-groups/new') }}" class="btn submit add icon">
+            {{ 'New affiliate group'|t('kickback') }}
+        </a>
+    {% endif %}
+{% endblock %}

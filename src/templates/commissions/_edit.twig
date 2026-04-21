@@ -1,0 +1,120 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+{% set title = 'Commission #{id}'|t('kickback', { id: commission.id }) %}
+{% set selectedSubnavItem = 'commissions' %}
+
+{% set crumbs = [
+    { label: 'plugin.name'|t('kickback'), url: cpUrl('kickback') },
+    { label: 'nav.commissions'|t('kickback'), url: cpUrl('kickback/commissions') },
+] %}
+
+{% set currencyCode = commission.currency ?? craft.kickback.currency %}
+
+{% block actionButton %}
+    {% if currentUser.can('kickback-approveCommissions') %}
+        {% if commission.commissionStatus == 'pending' %}
+            <div class="buttons">
+                <form method="post" accept-charset="UTF-8">
+                    {{ csrfInput() }}
+                    {{ actionInput('kickback/commissions/approve') }}
+                    {{ redirectInput('kickback/commissions/' ~ commission.id) }}
+                    {{ hiddenInput('commissionId', commission.id) }}
+                    <button type="submit" class="btn submit">{{ 'Approve'|t('kickback') }}</button>
+                </form>
+                <form method="post" accept-charset="UTF-8">
+                    {{ csrfInput() }}
+                    {{ actionInput('kickback/commissions/reject') }}
+                    {{ redirectInput('kickback/commissions/' ~ commission.id) }}
+                    {{ hiddenInput('commissionId', commission.id) }}
+                    <button type="submit" class="btn">{{ 'Reject'|t('kickback') }}</button>
+                </form>
+            </div>
+        {% elseif commission.commissionStatus == 'approved' %}
+            <div class="buttons">
+                <form method="post" accept-charset="UTF-8">
+                    {{ csrfInput() }}
+                    {{ actionInput('kickback/commissions/reverse') }}
+                    {{ redirectInput('kickback/commissions/' ~ commission.id) }}
+                    {{ hiddenInput('commissionId', commission.id) }}
+                    <button type="submit" class="btn">{{ 'Reverse'|t('kickback') }}</button>
+                </form>
+            </div>
+        {% endif %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div id="fields">
+        {{ forms.field({ label: 'common.status'|t('kickback') }, '<span class="status ' ~ commission.statusColor ~ '"></span>' ~ (commission.commissionStatus|t('kickback')|capitalize))|raw }}
+
+        <hr>
+        <h2>{{ 'Details'|t('kickback') }}</h2>
+
+        {% set affiliateValue = affiliate
+            ? ('<a href="' ~ affiliate.cpEditUrl ~ '">' ~ affiliate.title|e ~ '</a>')
+            : '<span class="light">-</span>' %}
+        {{ forms.field({ label: 'affiliate.one'|t('kickback') }, affiliateValue)|raw }}
+
+        {% set referralValue = referral
+            ? ('<a href="' ~ referral.cpEditUrl ~ '">' ~ ('Referral #{id}'|t('kickback', { id: referral.id })|e) ~ '</a>')
+            : '<span class="light">-</span>' %}
+        {{ forms.field({ label: 'Referral'|t('kickback') }, referralValue)|raw }}
+
+        {{ forms.field({ label: 'common.amount'|t('kickback') }, commission.amount|currency(currencyCode)) }}
+
+        {% if commission.originalAmount and commission.originalAmount != commission.amount %}
+            {{ forms.field({ label: 'Original Amount'|t('kickback') }, commission.originalAmount|currency(currencyCode)) }}
+        {% endif %}
+
+        {% set rateValue = commission.rateType == 'percentage'
+            ? (commission.rate ~ '%')
+            : commission.rate|currency(currencyCode) %}
+        {{ forms.field({ label: 'common.rate'|t('kickback') }, rateValue) }}
+
+        {{ forms.field({ label: 'common.tier'|t('kickback') }, commission.tier) }}
+
+        {% if commission.ruleApplied %}
+            {{ forms.field({ label: 'referral.field.ruleApplied'|t('kickback') }, '<code>' ~ commission.ruleApplied|e ~ '</code>')|raw }}
+        {% endif %}
+        {% if commission.description %}
+            {{ forms.field({ label: 'common.description'|t('kickback') }, commission.description) }}
+        {% endif %}
+        {% if commission.isRecurring %}
+            {{ forms.field({ label: 'Recurring'|t('kickback') }, 'Yes'|t('kickback') ~ ' (' ~ 'Renewal #{n}'|t('kickback', { n: commission.renewalNumber }) ~ ')') }}
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block details %}
+    <div class="meta read-only">
+        <div class="data">
+            <h5 class="heading">{{ 'ID'|t('app') }}</h5>
+            <div class="value">{{ commission.id }}</div>
+        </div>
+        <div class="data">
+            <h5 class="heading">{{ 'Date Created'|t('app') }}</h5>
+            <div class="value">{{ commission.dateCreated ? commission.dateCreated|datetime('short') : '-' }}</div>
+        </div>
+        {% if commission.dateApproved %}
+            <div class="data">
+                <h5 class="heading">{{ 'common.dateApproved'|t('kickback') }}</h5>
+                <div class="value">{{ commission.dateApproved|datetime('short') }}</div>
+            </div>
+        {% endif %}
+        {% if commission.dateReversed %}
+            <div class="data">
+                <h5 class="heading">{{ 'Date Reversed'|t('kickback') }}</h5>
+                <div class="value">{{ commission.dateReversed|datetime('short') }}</div>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if commission.ruleResolutionTrace %}
+        <div class="meta">
+            <details>
+                <summary style="cursor: pointer; font-weight: bold; padding: 0.5rem 0;">{{ 'Resolution Trace (debug)'|t('kickback') }}</summary>
+                <pre style="white-space: pre-wrap; word-break: break-word; background: #f4f4f4; padding: 0.75rem; border-radius: 4px; margin-top: 0.5rem; font-size: 11px;">{{ commission.formattedResolutionTrace }}</pre>
+            </details>
+        </div>
+    {% endif %}
+{% endblock %}

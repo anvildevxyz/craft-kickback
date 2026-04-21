@@ -1,0 +1,66 @@
+{% extends "kickback/portal/_layout" %}
+{% set portalBase = '/' ~ settings.currentSitePortalPath %}
+
+{% set activeNav = 'team' %}
+
+{% block title %}My Team{% endblock %}
+
+{% block content %}
+    <h1>{{ 'Recruit Other Affiliates'|t('kickback') }}</h1>
+
+    <div class="kb-table-wrap">
+        <div class="kb-table-header">{{ 'Your Recruitment Link'|t('kickback') }}</div>
+        <div class="kb-table-wrap__body">
+            <p style="font-size: 0.875rem; color: #666; margin-bottom: 0.75rem;">{{ "Share this URL with anyone you'd like to recruit into the program. Anyone who signs up through it becomes part of your team, and you'll earn override commissions on their referrals."|t('kickback') }}</p>
+            <div class="kb-link-box">
+                <input type="text" id="kb-recruit-url" value="{{ recruitUrl }}" readonly>
+                <button type="button" class="kb-btn kb-btn-primary" onclick="kbCopyToClipboard('kb-recruit-url', this)">{{ 'common.copy'|t('kickback') }}</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="kb-table-wrap">
+        <div class="kb-table-header">{{ 'Your Downline'|t('kickback') }} ({{ downline|length }})</div>
+        {% if downline|length > 0 %}
+            <table class="kb-table">
+                <thead>
+                    <tr>
+                        <th>{{ 'common.name'|t('kickback') }}</th>
+                        <th>{{ 'Email'|t('kickback') }}</th>
+                        <th>{{ 'common.status'|t('kickback') }}</th>
+                        <th>{{ 'affiliate.field.joined'|t('kickback') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for recruit in downline %}
+                        <tr>
+                            <td>{{ recruit.title }}</td>
+                            <td>{{ recruit.getUser() ? recruit.getUser().email : '-' }}</td>
+                            <td><span class="kb-badge kb-badge-{{ recruit.affiliateStatus }}">{{ recruit.affiliateStatus|capitalize }}</span></td>
+                            <td>{{ recruit.dateCreated|date('M j, Y') }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="kb-empty">
+                <p>{{ 'No recruits yet. Share your link above to start building your team.'|t('kickback') }}</p>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        function kbCopyToClipboard(inputId, btn) {
+            var input = document.getElementById(inputId);
+            navigator.clipboard.writeText(input.value).then(function() {
+                var original = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(function() {
+                    btn.textContent = original;
+                }, 2000);
+            });
+        }
+    </script>
+{% endblock %}

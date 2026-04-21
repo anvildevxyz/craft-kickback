@@ -1,0 +1,41 @@
+includes:
+    - vendor/craftcms/phpstan/phpstan.neon
+
+parameters:
+    level: 6
+    paths:
+        - src
+    ignoreErrors:
+        - '#unknown class craft\\commerce\\#i'
+        - '#invalid type craft\\commerce\\#i'
+        - '#invalid return type craft\\commerce\\#i'
+        - '#class craft\\commerce\\.*not found#i'
+        # Yii\base\Action is generic; Craft's beforeAction signature does
+        # not propagate type parameters and we have nothing to do with them.
+        - '#Method .+::beforeAction\(\) has parameter \$action with generic class yii\\base\\Action but does not specify its types: T#'
+        # Stripe SDK uses very strict array shapes that PHPStan can't unify
+        # with our payload arrays — runtime is correct, types are too strict.
+        - '#Parameter \#1 \$params of method Stripe\\Service\\.+::create\(\) expects#'
+        # Commerce Order implements ElementInterface at runtime, but with the
+        # phpstan-craft Commerce ignores in place we lose that knowledge.
+        - '#Parameter \#1 \$element of method craft\\services\\Elements::(saveElement|deleteElement)\(\) expects craft\\base\\ElementInterface, craft\\commerce\\elements\\Order given#'
+        # Craft's ElementQuery::statusCondition() docblock returns
+        # `string|array|...` with no value type — overrides inherit the
+        # warning. Our overrides all return well-formed associative arrays.
+        - '#Method anvildev\\craftkickback\\elements\\db\\.+::statusCondition\(\) return type has no value type specified in iterable type array#'
+        # Craft Element lifecycle hooks (statuses, defineSources,
+        # defineTableAttributes, defineSortOptions, getSupportedSites) inherit
+        # loose `array` return types from craft\base\Element parent docblocks.
+        # The shapes are framework-defined; Craft consumes them, we don't.
+        - '#Method anvildev\\craftkickback\\elements\\.+::(statuses|defineSources|defineTableAttributes|defineSortOptions|defineSearchableAttributes|getSupportedSites)\(\) return type has no value type specified in iterable type array#'
+        # Yii Model::defineRules() returns the validator rules array. Each row
+        # is a heterogenous tuple; annotating it precisely is impossible
+        # without redefining Yii's own rule shape.
+        - '#Method anvildev\\craftkickback\\.+::defineRules\(\) return type has no value type specified in iterable type array#'
+        # Craft GQL base classes (Arguments, Interface, Query) all return
+        # untyped arrays from their abstract methods. Our overrides inherit
+        # the same loose contract Craft uses internally.
+        - '#Method anvildev\\craftkickback\\gql\\(arguments|interfaces|queries)\\.+::(getArguments|getFieldDefinitions|getQueries|applyArgs)\(\)#'
+        # craft\db\ActiveQuery extends yii\db\ActiveQuery but does not
+        # propagate the generic type parameter — suppressing globally.
+        - '#return type with generic class yii\\db\\ActiveQuery does not specify its types: T#'

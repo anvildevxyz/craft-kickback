@@ -1,0 +1,84 @@
+{% extends "kickback/portal/_layout" %}
+{% set portalBase = '/' ~ settings.currentSitePortalPath %}
+
+{% set activeNav = 'referrals' %}
+
+{% block title %}Referrals{% endblock %}
+
+{% block content %}
+    <h1>Referrals</h1>
+
+    <div class="kb-filter-bar">
+        <a href="{{ portalBase }}/referrals{% if currentSubId %}?subid={{ currentSubId|url_encode }}{% endif %}" class="kb-filter-pill {{ currentStatus is null ? 'kb-filter-active' }}">All</a>
+        {% for status in statuses %}
+            <a href="{{ portalBase }}/referrals?status={{ status }}{% if currentSubId %}&subid={{ currentSubId|url_encode }}{% endif %}" class="kb-filter-pill {{ currentStatus == status ? 'kb-filter-active' }}">{{ status|capitalize }}</a>
+        {% endfor %}
+
+        <form method="get" action="{{ portalBase }}/referrals" class="kb-filter-search">
+            {% if currentStatus %}<input type="hidden" name="status" value="{{ currentStatus }}">{% endif %}
+            <input type="text" name="subid" value="{{ currentSubId }}" placeholder="Filter by sub ID…">
+            <button type="submit">Filter</button>
+        </form>
+    </div>
+
+    <div class="kb-table-wrap">
+        {% if referrals|length > 0 %}
+            <table class="kb-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Date</th>
+                        <th>Order Subtotal</th>
+                        <th>Attribution</th>
+                        <th>Coupon</th>
+                        <th>Sub ID</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for referral in referrals %}
+                        <tr>
+                            <td>#{{ referral.id }}</td>
+                            <td>{{ referral.dateCreated|date('M j, Y') }}</td>
+                            <td>{{ referral.orderSubtotal|currency(craft.kickback.currency) }}</td>
+                            <td>{{ referral.attributionMethod|replace({'_': ' '})|capitalize }}</td>
+                            <td>{% if referral.couponCode %}<code class="kb-code-pill">{{ referral.couponCode }}</code>{% else %}<span class="kb-muted">-</span>{% endif %}</td>
+                            <td>{{ referral.subId ?: '-' }}</td>
+                            <td><span class="kb-badge kb-badge-{{ referral.status }}">{{ referral.status|capitalize }}</span></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% if totalPages > 1 %}
+                {% set baseParams = {} %}
+                {% if currentStatus %}{% set baseParams = baseParams|merge({status: currentStatus}) %}{% endif %}
+                {% if currentSubId %}{% set baseParams = baseParams|merge({subid: currentSubId}) %}{% endif %}
+
+                <div class="kb-pagination">
+                    <span>Showing {{ (currentPage - 1) * 25 + 1 }}–{{ min(currentPage * 25, totalCount) }} of {{ totalCount }}</span>
+                    <div class="kb-pagination__pages">
+                        {% if currentPage > 1 %}
+                            <a href="{{ portalBase }}/referrals?{{ baseParams|merge({page: currentPage - 1})|url_encode }}">←</a>
+                        {% endif %}
+                        {% for p in max(1, currentPage - 2)..min(totalPages, currentPage + 2) %}
+                            {% if p == currentPage %}
+                                <span class="kb-pagination__current">{{ p }}</span>
+                            {% else %}
+                                <a href="{{ portalBase }}/referrals?{{ baseParams|merge({page: p})|url_encode }}">{{ p }}</a>
+                            {% endif %}
+                        {% endfor %}
+                        {% if currentPage < totalPages %}
+                            <a href="{{ portalBase }}/referrals?{{ baseParams|merge({page: currentPage + 1})|url_encode }}">→</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="kb-empty">
+                <p>No referrals yet.</p>
+                <p class="kb-empty__subtitle">Share your referral link to start earning commissions.</p>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

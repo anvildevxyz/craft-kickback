@@ -1,0 +1,51 @@
+{#
+ # Base Email Layout
+ #
+ # Shared layout for all Kickback email templates.
+ # Clean, minimal design with inline styles for email client compatibility.
+ #
+ # Variables:
+ # - title: Email title (required)
+ # - siteName: Site name (auto-set by EmailRenderService)
+ #}
+
+{% set siteName = siteName ?? 'Site' %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #1a1a1a; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f5;">
+        <tr>
+            <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+                    {# Header #}
+                    <tr>
+                        <td style="padding: 32px 40px 24px; border-bottom: 1px solid #e4e4e7;">
+                            <p style="margin: 0; font-size: 14px; font-weight: 600; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em;">{{ siteName }}</p>
+                        </td>
+                    </tr>
+
+                    {# Content #}
+                    <tr>
+                        <td style="padding: 32px 40px;">
+                            {% block content %}{% endblock %}
+                        </td>
+                    </tr>
+
+                    {# Footer #}
+                    <tr>
+                        <td style="padding: 24px 40px; border-top: 1px solid #e4e4e7;">
+                            <p style="margin: 0; font-size: 12px; color: #a1a1aa;">{{ 'This is an automated message from {siteName}.'|t('kickback', { siteName: siteName }) }}</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

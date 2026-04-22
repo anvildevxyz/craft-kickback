@@ -2,7 +2,8 @@
   "name": "anvildev/craft-kickback",
   "description": "Advanced Affiliate & Referral Marketing for Craft CMS — referral tracking, commission rules, multi-tier MLM, coupon attribution, PayPal/Stripe payouts, and a self-service affiliate portal.",
   "type": "craft-plugin",
-  "license": "mit",
+  "license": "craft",
+  "version": "1.0.1",
   "keywords": [
     "craftcms",
     "affiliate",

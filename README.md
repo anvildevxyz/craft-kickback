@@ -373,4 +373,4 @@ composer phpstan
 
 ## License
 
-MIT
+Proprietary — see [LICENSE.md](LICENSE.md).

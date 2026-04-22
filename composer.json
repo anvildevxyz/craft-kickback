@@ -3,7 +3,6 @@
   "description": "Advanced Affiliate & Referral Marketing for Craft CMS — referral tracking, commission rules, multi-tier MLM, coupon attribution, PayPal/Stripe payouts, and a self-service affiliate portal.",
   "type": "craft-plugin",
   "license": "proprietary",
-  "version": "1.0.2",
   "keywords": [
     "craftcms",
     "affiliate",
@@ -14,6 +13,12 @@
     "mlm"
   ],
   "homepage": "https://github.com/anvildevxyz/craft-kickback",
+  "authors": [
+    {
+      "name": "anvildev",
+      "homepage": "https://anvildev.xyz"
+    }
+  ],
   "support": {
     "email": "dev@anvil.xyz",
     "docs": "https://github.com/anvildevxyz/craft-kickback/blob/main/README.md",
@@ -43,7 +48,9 @@
   "extra": {
     "handle": "kickback",
     "name": "Kickback",
-    "developer": "anvildev",
+    "developer": "Anvildev",
+    "developerUrl": "https://anvildev.xyz",
+    "developerEmail": "dev@anvil.xyz",
     "documentationUrl": "https://github.com/anvildevxyz/craft-kickback/blob/main/README.md",
     "class": "anvildev\\craftkickback\\KickBack"
   },

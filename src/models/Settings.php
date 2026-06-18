@@ -93,6 +93,12 @@ class Settings extends Model
     public ?int $defaultPayoutVerifierId = null;
     public bool $notifyVerifierOnRequest = true;
 
+    // MCP (Model Context Protocol) — off by default. The AI tool surface can
+    // create/update affiliates, programs and commission rules; writes are
+    // refused unless an administrator opts in here. Reads are always allowed.
+    // Money-moving operations (payouts, commission approval) are never exposed.
+    public bool $mcpWriteEnabled = false;
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -120,6 +126,7 @@ class Settings extends Model
         $rules[] = [['referralParamName'], 'match', 'pattern' => '/^[a-zA-Z_][a-zA-Z0-9_]*$/'];
 
         $rules[] = [['enableCouponCreation', 'allowAffiliateSelfServiceCoupons', 'requirePayoutVerification', 'notifyVerifierOnRequest'], 'boolean'];
+        $rules[] = [['mcpWriteEnabled'], 'boolean'];
 
         $rules[] = [['affiliatePortalPaths'], 'each', 'rule' => ['match', 'pattern' => '/^[a-zA-Z0-9][a-zA-Z0-9\/_-]*$/']];
         $rules[] = [['cancelledStatusHandles'], 'each', 'rule' => ['string']];

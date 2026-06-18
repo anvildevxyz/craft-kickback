@@ -148,6 +148,7 @@ class KickBack extends Plugin
         $this->registerGqlTypes();
         $this->registerGqlQueries();
         $this->registerGqlSchemaComponents();
+        $this->registerMcpTools();
 
         $this->approvals->registerTarget('payout', PayoutApprovalTarget::class);
         $this->approvals->registerTarget('affiliate', AffiliateApprovalTarget::class);
@@ -469,6 +470,35 @@ class KickBack extends Plugin
         ] as [$class, $event, $method]) {
             Event::on($class, $event, fn($e) => $this->notifications->$method($e));
         }
+    }
+
+    /**
+     * Register Kickback's tools with the craft-mcp plugin, when it is installed.
+     *
+     * Soft dependency: the integration is wired up by listening for craft-mcp's
+     * tool-registration event, so Kickback runs unchanged when the MCP plugin is
+     * absent. Each tool class declares its tools via `#[McpTool]` attributes.
+     */
+    private function registerMcpTools(): void
+    {
+        if (!class_exists(\stimmt\craft\Mcp\Mcp::class)) {
+            return;
+        }
+
+        Event::on(
+            \stimmt\craft\Mcp\Mcp::class,
+            \stimmt\craft\Mcp\Mcp::EVENT_REGISTER_TOOLS,
+            static function(\stimmt\craft\Mcp\events\RegisterToolsEvent $event): void {
+                $event->addTool(\anvildev\craftkickback\mcp\AffiliateTools::class, 'kickback');
+                $event->addTool(\anvildev\craftkickback\mcp\AffiliateGroupTools::class, 'kickback');
+                $event->addTool(\anvildev\craftkickback\mcp\ProgramTools::class, 'kickback');
+                $event->addTool(\anvildev\craftkickback\mcp\CommissionRuleTools::class, 'kickback');
+                $event->addTool(\anvildev\craftkickback\mcp\ReferralTools::class, 'kickback');
+                $event->addTool(\anvildev\craftkickback\mcp\CommissionTools::class, 'kickback');
+                $event->addTool(\anvildev\craftkickback\mcp\PayoutTools::class, 'kickback');
+                $event->addTool(\anvildev\craftkickback\mcp\ReportTools::class, 'kickback');
+            }
+        );
     }
 
     private function registerGqlTypes(): void

@@ -65,6 +65,8 @@ class SettingsController extends Controller
         $settings->requirePayoutVerification = (bool)$request->getBodyParam('requirePayoutVerification', $settings->requirePayoutVerification);
         $settings->notifyVerifierOnRequest = (bool)$request->getBodyParam('notifyVerifierOnRequest', $settings->notifyVerifierOnRequest);
 
+        $settings->mcpWriteEnabled = (bool)$request->getBodyParam('mcpWriteEnabled', $settings->mcpWriteEnabled);
+
         // elementSelectField posts an array with a single id; unwrap it.
         $verifierRaw = $request->getBodyParam('defaultPayoutVerifierId');
         if (is_array($verifierRaw)) {

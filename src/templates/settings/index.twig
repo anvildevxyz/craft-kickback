@@ -28,6 +28,7 @@
     fraud: { label: 'Fraud'|t('kickback'), url: '#fraud' },
     multitier: { label: 'Multi-Tier'|t('kickback'), url: '#multitier' },
     portal: { label: 'Portal'|t('kickback'), url: '#portal' },
+    integrations: { label: 'Integrations'|t('kickback'), url: '#integrations' },
 } %}
 
 {% block content %}
@@ -526,6 +527,20 @@
                            placeholder="affiliate">
                 </div>
             </div>
+        </div>
+
+        {# ─ Integrations (AI / MCP) ──────────────── #}
+        <div id="integrations" class="hidden">
+            <h2>{{ 'AI / MCP Access'|t('kickback') }}</h2>
+            <p class="light">{{ 'Controls the Model Context Protocol (MCP) tool surface for AI assistants. Read tools are always available; writes are off by default.'|t('kickback') }}</p>
+
+            {{ forms.lightswitchField({
+                label: 'Allow MCP write operations'|t('kickback'),
+                instructions: 'Let the AI/MCP tools create and update affiliates, programs and commission rules. Off by default — leave disabled unless an automated MCP client is explicitly trusted. Money-moving operations (payouts, commission approval) are never exposed.'|t('kickback'),
+                id: 'mcpWriteEnabled',
+                name: 'mcpWriteEnabled',
+                on: settings.mcpWriteEnabled,
+            }) }}
         </div>
 
         <div class="kb-form-footer">

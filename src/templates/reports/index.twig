@@ -1,33 +1,57 @@
+{# =========================================================================
+   Kickback Reports
+   Date-filtered stats, daily charts, and top affiliates.
+   Built from native Craft CP components (.pane, data tables, .status).
+   ========================================================================= #}
+
 {% extends '_layouts/cp' %}
+{% import 'kickback/_macros/status' as status %}
+
 {% set title = 'nav.reports'|t('kickback') %}
 {% set selectedSubnavItem = 'reports' %}
 
 {% set currency = craft.kickback.currency %}
+
+{# ── Muted line icons (currentColor, inherit pane text) ── #}
+{% macro iconUsers() %}
+<svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+{% endmacro %}
+{% macro iconShare() %}
+<svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+{% endmacro %}
+{% macro iconDollar() %}
+<svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+{% endmacro %}
+{% macro iconCursor() %}
+<svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l7.07 17 2.51-7.39L21 11.07z"/><path d="M15 15l5 5"/></svg>
+{% endmacro %}
+{% macro iconCard() %}
+<svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+{% endmacro %}
 
 {% block actionButton %}
     <a href="{{ url('kickback/reports/export', { startDate: startDate, endDate: endDate }) }}" class="btn">{{ 'Export CSV'|t('kickback') }}</a>
 {% endblock %}
 
 {% block content %}
-    {% do view.registerAssetBundle('anvildev\\craftkickback\\assets\\cp\\CpAssetBundle') %}
     {% do view.registerJsFile('https://cdn.jsdelivr.net/npm/chart.js') %}
 
-    <div class="kb-page">
+    <div class="kb-reports">
 
-        {# ── Date Range Filter ───────────────────── #}
-        <div class="kb-date-filter">
-            <form method="get" action="{{ url('kickback/reports') }}" style="display: contents;">
-                <div class="field" style="margin: 0;">
+        {# ── Date range filter ───────────────────────── #}
+        <div class="kb-toolbar">
+            <form method="get" action="{{ url('kickback/reports') }}" class="kb-daterange">
+                <div class="field">
                     <div class="heading"><label for="startDate">{{ 'Start Date'|t('kickback') }}</label></div>
                     <div class="input"><input type="date" id="startDate" name="startDate" value="{{ startDate ?? '' }}" class="text"></div>
                 </div>
-                <div class="field" style="margin: 0;">
+                <div class="field">
                     <div class="heading"><label for="endDate">{{ 'End Date'|t('kickback') }}</label></div>
                     <div class="input"><input type="date" id="endDate" name="endDate" value="{{ endDate ?? '' }}" class="text"></div>
                 </div>
                 <button type="submit" class="btn submit">{{ 'Filter'|t('kickback') }}</button>
             </form>
-            <div class="kb-date-presets">
+            <div class="btngroup">
                 {% set presets = {
                     thisMonth: 'This Month'|t('kickback'),
                     lastMonth: 'Last Month'|t('kickback'),
@@ -36,88 +60,68 @@
                     allTime: 'All Time'|t('kickback'),
                 } %}
                 {% for key, label in presets %}
-                    <a href="{{ url('kickback/reports', { preset: key }) }}"
-                       class="kb-filter {{ (preset == key or (key == 'allTime' and preset is null and startDate is null and endDate is null)) ? 'is-active' }}">
-                        {{ label }}
-                    </a>
+                    {% set isActive = preset == key or (key == 'allTime' and preset is null and startDate is null and endDate is null) %}
+                    <a href="{{ url('kickback/reports', { preset: key }) }}" class="btn{{ isActive ? ' active' }}">{{ label }}</a>
                 {% endfor %}
             </div>
         </div>
 
-        {# ── Stat Cards ──────────────────────────── #}
-        <div class="kb-metrics">
-            <div class="kb-metric kb-metric--teal">
-                <div class="kb-metric__header">
-                    <span class="kb-metric__label">{{ 'Total Affiliates'|t('kickback') }}</span>
-                    <span class="kb-metric__icon">
-                        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    </span>
+        {# ── Stat panes ──────────────────────────────── #}
+        <div class="kb-stats">
+            <div class="pane kb-stat">
+                <div class="kb-stat__head">
+                    <span class="kb-stat__label">{{ 'Total Affiliates'|t('kickback') }}</span>
+                    <span class="kb-stat__icon">{{ _self.iconUsers() }}</span>
                 </div>
-                <div class="kb-metric__value">{{ stats.totalAffiliates }}</div>
-                <div class="kb-metric__sub">{{ stats.activeAffiliates }} {{ 'active'|t('kickback') }}</div>
+                <div class="kb-stat__value">{{ stats.totalAffiliates }}</div>
+                <div class="kb-stat__sub">{{ stats.activeAffiliates }} {{ 'active'|t('kickback') }}</div>
             </div>
 
-            <div class="kb-metric kb-metric--violet">
-                <div class="kb-metric__header">
-                    <span class="kb-metric__label">{{ 'dashboard.totalReferrals'|t('kickback') }}</span>
-                    <span class="kb-metric__icon">
-                        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-                    </span>
+            <div class="pane kb-stat">
+                <div class="kb-stat__head">
+                    <span class="kb-stat__label">{{ 'dashboard.totalReferrals'|t('kickback') }}</span>
+                    <span class="kb-stat__icon">{{ _self.iconShare() }}</span>
                 </div>
-                <div class="kb-metric__value">{{ stats.totalReferrals }}</div>
-                <div class="kb-metric__sub">{{ stats.approvedReferrals }} {{ 'approved'|t('kickback') }}</div>
+                <div class="kb-stat__value">{{ stats.totalReferrals }}</div>
+                <div class="kb-stat__sub">{{ stats.approvedReferrals }} {{ 'approved'|t('kickback') }}</div>
             </div>
 
-            <div class="kb-metric kb-metric--emerald">
-                <div class="kb-metric__header">
-                    <span class="kb-metric__label">{{ 'dashboard.totalCommissions'|t('kickback') }}</span>
-                    <span class="kb-metric__icon">
-                        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                    </span>
+            <div class="pane kb-stat">
+                <div class="kb-stat__head">
+                    <span class="kb-stat__label">{{ 'dashboard.totalCommissions'|t('kickback') }}</span>
+                    <span class="kb-stat__icon">{{ _self.iconDollar() }}</span>
                 </div>
-                <div class="kb-metric__value">{{ stats.totalCommissions|currency(currency) }}</div>
-                <div class="kb-metric__sub">{{ stats.pendingCommissions|currency(currency) }} {{ 'pending'|t('kickback') }}</div>
+                <div class="kb-stat__value">{{ stats.totalCommissions|currency(currency) }}</div>
+                <div class="kb-stat__sub">{{ stats.pendingCommissions|currency(currency) }} {{ 'pending'|t('kickback') }}</div>
             </div>
 
-            <div class="kb-metric kb-metric--blue">
-                <div class="kb-metric__header">
-                    <span class="kb-metric__label">{{ 'dashboard.totalClicks'|t('kickback') }}</span>
-                    <span class="kb-metric__icon">
-                        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l7.07 17 2.51-7.39L21 11.07z"/><path d="M15 15l5 5"/></svg>
-                    </span>
+            <div class="pane kb-stat">
+                <div class="kb-stat__head">
+                    <span class="kb-stat__label">{{ 'dashboard.totalClicks'|t('kickback') }}</span>
+                    <span class="kb-stat__icon">{{ _self.iconCursor() }}</span>
                 </div>
-                <div class="kb-metric__value">{{ stats.totalClicks|number_format }}</div>
+                <div class="kb-stat__value">{{ stats.totalClicks|number_format }}</div>
             </div>
 
-            <div class="kb-metric kb-metric--amber">
-                <div class="kb-metric__header">
-                    <span class="kb-metric__label">{{ 'Total Payouts'|t('kickback') }}</span>
-                    <span class="kb-metric__icon">
-                        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                    </span>
+            <div class="pane kb-stat">
+                <div class="kb-stat__head">
+                    <span class="kb-stat__label">{{ 'Total Payouts'|t('kickback') }}</span>
+                    <span class="kb-stat__icon">{{ _self.iconCard() }}</span>
                 </div>
-                <div class="kb-metric__value">{{ stats.totalPayouts|currency(currency) }}</div>
-                <div class="kb-metric__sub">{{ 'completed'|t('kickback') }}</div>
+                <div class="kb-stat__value">{{ stats.totalPayouts|currency(currency) }}</div>
+                <div class="kb-stat__sub">{{ 'completed'|t('kickback') }}</div>
             </div>
         </div>
 
-        {# ── Charts ──────────────────────────────── #}
-        <div class="kb-grid-2" style="margin-block-end: 1.5rem;">
-            <div class="kb-chart-wrap" style="animation-delay: 0.25s;">
-                <div class="kb-chart-header">
-                    <h2 class="kb-chart-title">{{ 'Daily Commissions'|t('kickback') }}</h2>
-                </div>
-                <div class="kb-chart-container" style="height: 220px;">
-                    <canvas id="kb-commissions-chart"></canvas>
-                </div>
+        {# ── Daily charts ────────────────────────────── #}
+        <div class="kb-cols">
+            <div class="pane">
+                <div class="kb-pane-head"><h2>{{ 'Daily Commissions'|t('kickback') }}</h2></div>
+                <div class="kb-chart"><canvas id="kb-commissions-chart"></canvas></div>
             </div>
-            <div class="kb-chart-wrap" style="animation-delay: 0.3s;">
-                <div class="kb-chart-header">
-                    <h2 class="kb-chart-title">{{ 'Daily Referrals'|t('kickback') }}</h2>
-                </div>
-                <div class="kb-chart-container" style="height: 220px;">
-                    <canvas id="kb-referrals-chart"></canvas>
-                </div>
+            <div class="pane">
+                <div class="kb-pane-head"><h2>{{ 'Daily Referrals'|t('kickback') }}</h2></div>
+                <div class="kb-chart"><canvas id="kb-referrals-chart"></canvas></div>
             </div>
         </div>
 
@@ -224,45 +228,34 @@
             })();
         {% endjs %}
 
-        {# ── Top Affiliates ──────────────────────── #}
+        {# ── Top affiliates ──────────────────────────── #}
         {% if topAffiliates|length %}
-            <div class="kb-section" style="animation-delay: 0.35s;">
-                <div class="kb-section__header">
-                    <h3 class="kb-section__title">{{ 'reports.topAffiliates'|t('kickback') }}</h3>
-                    <a href="{{ cpUrl('kickback/affiliates') }}" class="kb-section__link">{{ 'View all'|t('app') }}</a>
+            <div class="pane">
+                <div class="kb-pane-head">
+                    <h2>{{ 'reports.topAffiliates'|t('kickback') }}</h2>
+                    <a href="{{ cpUrl('kickback/affiliates') }}">{{ 'View all'|t('app') }}</a>
                 </div>
-                <table class="kb-table">
+                <table class="data fullwidth">
                     <thead>
                         <tr>
-                            <th style="width: 40px;"></th>
+                            <th class="thin"></th>
                             <th>{{ 'common.name'|t('kickback') }}</th>
                             <th>{{ 'Code'|t('kickback') }}</th>
-                            <th style="text-align: right;">{{ 'affiliate.field.lifetimeEarnings'|t('kickback') }}</th>
-                            <th style="text-align: right;">{{ 'affiliateStatus.pending'|t('kickback') }}</th>
+                            <th class="rightalign">{{ 'affiliate.field.lifetimeEarnings'|t('kickback') }}</th>
+                            <th class="rightalign">{{ 'affiliateStatus.pending'|t('kickback') }}</th>
                             <th>{{ 'common.status'|t('kickback') }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for affiliate in topAffiliates %}
+                            {% set rankClass = { 1: 'kb-rank--gold', 2: 'kb-rank--silver', 3: 'kb-rank--bronze' } %}
                             <tr>
-                                <td style="text-align: center;">
-                                    {% if loop.index == 1 %}
-                                        <span class="kb-rank kb-rank--gold">1</span>
-                                    {% elseif loop.index == 2 %}
-                                        <span class="kb-rank kb-rank--silver">2</span>
-                                    {% elseif loop.index == 3 %}
-                                        <span class="kb-rank kb-rank--bronze">3</span>
-                                    {% else %}
-                                        <span class="kb-rank">{{ loop.index }}</span>
-                                    {% endif %}
-                                </td>
+                                <td><span class="kb-rank {{ rankClass[loop.index] ?? '' }}">{{ loop.index }}</span></td>
                                 <td><a href="{{ affiliate.cpEditUrl }}">{{ affiliate.title }}</a></td>
-                                <td><span class="kb-mono">{{ affiliate.referralCode }}</span></td>
-                                <td class="kb-numeric" style="text-align: right;">{{ affiliate.lifetimeEarnings|currency(currency) }}</td>
-                                <td class="kb-numeric" style="text-align: right;">{{ affiliate.pendingBalance|currency(currency) }}</td>
-                                <td>
-                                    <span class="kb-badge kb-badge--{{ affiliate.affiliateStatus }}">{{ affiliate.affiliateStatus|capitalize }}</span>
-                                </td>
+                                <td class="code">{{ affiliate.referralCode }}</td>
+                                <td class="rightalign">{{ affiliate.lifetimeEarnings|currency(currency) }}</td>
+                                <td class="rightalign">{{ affiliate.pendingBalance|currency(currency) }}</td>
+                                <td>{{ status.badge(affiliate.affiliateStatus, 'affiliate') }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -271,4 +264,40 @@
         {% endif %}
 
     </div>
+
+    {# Layout-only glue. All colour/surface comes from native .pane + Craft tokens. #}
+    {% css %}
+        .kb-reports .pane { margin: 0; }
+        .kb-reports > .pane { margin-bottom: 14px; }
+        .kb-reports > .pane:last-child { margin-bottom: 0; }
+        .kb-reports .kb-toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
+        .kb-reports .kb-daterange { display: flex; align-items: flex-end; gap: 10px; }
+        .kb-reports .kb-daterange .field { margin: 0; }
+        .kb-reports .kb-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+        .kb-reports .kb-stat__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+        .kb-reports .kb-stat__label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--medium-text-color); }
+        .kb-reports .kb-stat__icon { display: inline-flex; color: var(--light-text-color); }
+        .kb-reports .kb-stat__value { font-size: 28px; font-weight: 600; line-height: 1.1; }
+        .kb-reports .kb-stat__sub { margin-top: 5px; font-size: 12px; color: var(--medium-text-color); }
+        .kb-reports .kb-pane-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+        .kb-reports .kb-pane-head h2 { margin: 0; }
+        .kb-reports .kb-chart { position: relative; height: 220px; }
+        .kb-reports .kb-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+        .kb-reports .kb-cols > .pane { margin-bottom: 0; }
+        .kb-reports .kb-rank {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px;
+            font-size: 12px; font-weight: 600;
+            background: var(--gray-100); color: var(--medium-text-color);
+        }
+        .kb-reports .kb-rank--gold   { background: #fef3c7; color: #92400e; }
+        .kb-reports .kb-rank--silver { background: #f1f5f9; color: #475569; }
+        .kb-reports .kb-rank--bronze { background: #fed7aa; color: #9a3412; }
+        @media (max-width: 900px) { .kb-reports .kb-cols { grid-template-columns: 1fr; } }
+    {% endcss %}
 {% endblock %}

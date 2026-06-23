@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.1 - 2026-06-23
+
+### Changed
+- Rebuilt the admin dashboard on native Craft CP components (panes, `data` tables, status badges, design tokens) in place of the bespoke `kb-*` styling, so it now follows CP light/dark theming.
+
+### Fixed
+- Uneven dashboard stat-pane heights caused by Craft's `.pane:first-child`/`:last-child` margin resets inside the grid.
+
 ## 1.1.0 - 2026-06-18
 
 ### Added

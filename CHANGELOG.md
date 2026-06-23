@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.2 - 2026-06-23
+
+### Changed
+- Rebuilt the reports page on native Craft CP components (panes, `data` tables, status badges, `btngroup` date presets), matching the dashboard.
+- Trimmed `kickback-cp.css` from 966 to 276 lines now that the dashboard and reports no longer use the bespoke styling; CP form/fraud/tag utilities are unchanged.
+
 ## 1.1.1 - 2026-06-23
 
 ### Changed

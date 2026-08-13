@@ -11,6 +11,8 @@
 - The `craftcms/new-release` workflow no longer fails when the GitHub release already exists. It builds the release with `ncipollo/release-action`, which returns 422 on a release created manually right after tagging; `allowUpdates` now lets it update instead ([#4](https://github.com/anvildevxyz/craft-kickback/pull/4)).
 - Dependabot now proposes weekly Composer and GitHub Actions updates, with the dev toolchain grouped into one pull request and the `craftcms/cms` range left alone ([#5](https://github.com/anvildevxyz/craft-kickback/pull/5)).
 
+## 1.1.2 - 2026-06-23
+
 ### Changed
 - Rebuilt the reports page on native Craft CP components (panes, `data` tables, status badges, `btngroup` date presets), matching the dashboard.
 - Trimmed `kickback-cp.css` from 966 to 276 lines now that the dashboard and reports no longer use the bespoke styling; CP form/fraud/tag utilities are unchanged.

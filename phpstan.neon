@@ -5,6 +5,13 @@ parameters:
     level: 6
     paths:
         - src
+    # Several ignores below cover packages that may or may not be installed
+    # (craft-mcp, Commerce) or that change shape between versions — the Stripe
+    # one only matches on SDK majors that declare strict array shapes for
+    # create(), and composer.json accepts v13 through v21. A pattern therefore
+    # matches in one environment and not another, and failing the run over that
+    # makes the gate depend on what happens to be in vendor/.
+    reportUnmatchedIgnoredErrors: false
     ignoreErrors:
         # Optional stimmt/craft-mcp integration (see composer.json "suggest") — the package and
         # its mcp/sdk attributes are not installed in this repo; src/mcp tools are only ever

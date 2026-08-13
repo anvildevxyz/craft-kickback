@@ -28,7 +28,7 @@
     "php": ">=8.2",
     "craftcms/cms": "^5.8.0",
     "paypal/paypal-server-sdk": "^2.2",
-    "stripe/stripe-php": "^20.0"
+    "stripe/stripe-php": "^13.0 || ^14.0 || ^15.0 || ^16.0 || ^17.0 || ^18.0 || ^19.0 || ^20.0 || ^21.0"
   },
   "require-dev": {
     "craftcms/ecs": "dev-main",

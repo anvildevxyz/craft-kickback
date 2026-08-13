@@ -1,6 +1,13 @@
 # Changelog
 
-## 1.1.2 - 2026-06-23
+## Unreleased
+
+### Fixed
+- **Kickback installs alongside plugins that cap the Stripe SDK lower.** Kickback required `stripe/stripe-php` `^20.0`, which no version of Solspace Freeform accepts — Freeform 5 caps the same SDK at `^15`, Formie at `^16`, and Craft Commerce's Stripe gateway at `^13`. `stripe/stripe-php` is a single shared package, so the lowest ceiling in the project wins and Composer refused the install outright. The requirement is now a range, `^13.0` through `^21.0`. Kickback only uses transfers create/retrieve, Connect accounts create/retrieve, account links create and webhook signature verification, and those signatures are identical across that range.
+
+### Internal
+- PHPStan no longer reports unmatched ignore patterns. Several ignores cover packages that may or may not be installed (craft-mcp, Commerce), and the Stripe one only matches on SDK majors that declare strict array shapes for `create()` — so with the range above, `composer phpstan` failed at the floor and passed at the ceiling on identical code. It was already failing on `main` for the same reason, reporting two unmatched patterns and nothing else.
+- `StripeSdkSurfaceTest` pins the SDK surface the gateway stands on. The existing `StripeWebhookTest` covers the guard clauses in front of the SDK and stops before reaching it, so nothing in the suite would have noticed the floor breaking.
 
 ### Changed
 - Rebuilt the reports page on native Craft CP components (panes, `data` tables, status badges, `btngroup` date presets), matching the dashboard.

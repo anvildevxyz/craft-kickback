@@ -16,7 +16,6 @@ use anvildev\craftkickback\mcp\support\Presenter;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
-use ReflectionMethod;
 
 /**
  * Verifies Kickback's craft-mcp integration: each tool class declares the
@@ -133,6 +132,32 @@ class McpToolsTest extends TestCase
         $this->assertSame(['_class' => $obj::class], Presenter::jsonSafe($obj));
     }
 
+    public function testCraftServerRegistration(): void
+    {
+        $plugin = file_get_contents($this->srcDir() . '/KickBack.php');
+        $this->assertStringContainsString('class_exists(\\craft\\services\\Mcp::class)', $plugin);
+        $this->assertStringContainsString('EVENT_REGISTER_CAPABILITY_TYPES', $plugin);
+        $this->assertStringContainsString('EVENT_DISCOVERING_CAPABILITY', $plugin);
+        $this->assertStringContainsString('class_exists(\\stimmt\\craft\\Mcp\\Mcp::class)', $plugin);
+        $this->assertStringContainsString('EVENT_REGISTER_TOOLS', $plugin);
+
+        foreach ($this->mcpSourceFiles() as $file) {
+            $src = file_get_contents($file);
+            $tools = preg_match_all("/#\\[McpTool\\(/", $src);
+            $this->assertSame($tools, substr_count($src, '#[RequiresPermission('), basename($file));
+            $this->assertSame(
+                substr_count($src, 'dangerous: true'),
+                substr_count($src, 'destructiveHint: true'),
+                basename($file),
+            );
+            $this->assertSame(
+                $tools - substr_count($src, 'dangerous: true'),
+                substr_count($src, 'readOnlyHint: true'),
+                basename($file),
+            );
+        }
+    }
+
     public function testMutatingToolsRouteThroughWriteGate(): void
     {
         // Every tool flagged dangerous:true must use guardWrite(); read tools must not.
@@ -228,12 +253,9 @@ class McpToolsTest extends TestCase
     private function declaredToolNames(string $class): array
     {
         $names = [];
-        foreach ((new ReflectionClass($class))->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
-            $attr = $method->getAttributes(self::MCP_TOOL_ATTR)[0] ?? null;
-            $name = $attr?->getArguments()['name'] ?? null;
-            if ($name !== null) {
-                $names[] = $name;
-            }
+        $source = (string) file_get_contents((new ReflectionClass($class))->getFileName());
+        if (preg_match_all("/name: '([^']+)'/", $source, $matches)) {
+            $names = $matches[1];
         }
         return $names;
     }

@@ -473,13 +473,79 @@ class KickBack extends Plugin
     }
 
     /**
-     * Register Kickback's tools with the craft-mcp plugin, when it is installed.
-     *
-     * Soft dependency: the integration is wired up by listening for craft-mcp's
-     * tool-registration event, so Kickback runs unchanged when the MCP plugin is
-     * absent. Each tool class declares its tools via `#[McpTool]` attributes.
+     * Register Kickback's tools with Craft 5.12's built-in MCP server and, when
+     * it is installed, with stimmt/craft-mcp. Both are soft dependencies.
      */
     private function registerMcpTools(): void
+    {
+        $this->registerCraftMcpTools();
+        $this->registerStimmtMcpTools();
+    }
+
+    /**
+     * Registers the existing tool classes with Craft's MCP server (5.12+).
+     * Write tools stay hidden unless the install has opted in, the same switch
+     * authorizeWrite() already enforces when a tool is called.
+     */
+    private function registerCraftMcpTools(): void
+    {
+        if (!class_exists(\craft\services\Mcp::class)) {
+            return;
+        }
+
+        Event::on(
+            \craft\services\Mcp::class,
+            \craft\services\Mcp::EVENT_REGISTER_CAPABILITY_TYPES,
+            static function(\craft\events\RegisterComponentTypesEvent $event): void {
+                $event->types[] = \anvildev\craftkickback\mcp\AffiliateTools::class;
+                $event->types[] = \anvildev\craftkickback\mcp\AffiliateGroupTools::class;
+                $event->types[] = \anvildev\craftkickback\mcp\ProgramTools::class;
+                $event->types[] = \anvildev\craftkickback\mcp\CommissionRuleTools::class;
+                $event->types[] = \anvildev\craftkickback\mcp\ReferralTools::class;
+                $event->types[] = \anvildev\craftkickback\mcp\CommissionTools::class;
+                $event->types[] = \anvildev\craftkickback\mcp\PayoutTools::class;
+                $event->types[] = \anvildev\craftkickback\mcp\ReportTools::class;
+            },
+        );
+
+        Event::on(
+            \craft\services\Mcp::class,
+            \craft\services\Mcp::EVENT_DISCOVERING_CAPABILITY,
+            static function(\craft\mcp\events\DiscoveringCapability $event): void {
+                $reference = $event->reference;
+                if (!$reference instanceof \Mcp\Capability\Registry\ToolReference) {
+                    return;
+                }
+                $name = $reference->tool->name;
+                if (!str_starts_with($name, 'kickback_')) {
+                    return;
+                }
+                $settings = self::getInstance()->getSettings();
+                if ($reference->tool->annotations?->destructiveHint === true && !$settings->mcpWriteEnabled) {
+                    $event->allowed = false;
+                }
+            },
+        );
+
+        if (!class_exists(\craft\mcp\AdminInstructions::class)) {
+            return;
+        }
+
+        Event::on(
+            \craft\mcp\AdminInstructions::class,
+            \craft\mcp\AdminInstructions::EVENT_COLLECT_INSTRUCTIONS,
+            static function(\craft\mcp\events\CollectingAdminInstructions $event): void {
+                $event->instructions[] = 'Use the kickback_* tools to read affiliates, programs, referrals, commissions, payouts, and reports. Writes stay hidden until MCP write operations are enabled in Kickback’s settings. Status changes and payout processing are not exposed.';
+            },
+        );
+    }
+
+    /**
+     * Registers the tool classes with stimmt/craft-mcp when that plugin is
+     * installed. Soft dependency (class_exists-guarded), so Kickback runs
+     * unchanged when craft-mcp is absent.
+     */
+    private function registerStimmtMcpTools(): void
     {
         if (!class_exists(\stimmt\craft\Mcp\Mcp::class)) {
             return;
@@ -497,7 +563,7 @@ class KickBack extends Plugin
                 $event->addTool(\anvildev\craftkickback\mcp\CommissionTools::class, 'kickback');
                 $event->addTool(\anvildev\craftkickback\mcp\PayoutTools::class, 'kickback');
                 $event->addTool(\anvildev\craftkickback\mcp\ReportTools::class, 'kickback');
-            }
+            },
         );
     }
 

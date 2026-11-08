@@ -6,6 +6,8 @@ use anvildev\craftkickback\elements\ProgramElement;
 use anvildev\craftkickback\KickBack;
 use anvildev\craftkickback\mcp\support\Presenter;
 use Mcp\Capability\Attribute\McpTool;
+use Mcp\Schema\ToolAnnotations;
+use craft\mcp\attributes\RequiresPermission;
 use stimmt\craft\Mcp\attributes\McpToolMeta;
 use stimmt\craft\Mcp\enums\ToolCategory;
 
@@ -24,8 +26,10 @@ class ProgramTools
     #[McpTool(
         name: 'kickback_list_programs',
         description: 'List Kickback affiliate programs (id, name, handle, default commission, cookie window, status).',
+        annotations: new ToolAnnotations(readOnlyHint: true),
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
+    #[RequiresPermission(KickBack::PERMISSION_MANAGE_PROGRAMS)]
     public function listPrograms(?string $status = null, int $limit = 50, int $offset = 0): array
     {
         return $this->guard(function() use ($status, $limit, $offset): array {
@@ -53,8 +57,10 @@ class ProgramTools
     #[McpTool(
         name: 'kickback_get_program',
         description: 'Get a single Kickback program by id.',
+        annotations: new ToolAnnotations(readOnlyHint: true),
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
+    #[RequiresPermission(KickBack::PERMISSION_MANAGE_PROGRAMS)]
     public function getProgram(int $id): array
     {
         return $this->guard(function() use ($id): array {
@@ -84,8 +90,10 @@ class ProgramTools
     #[McpTool(
         name: 'kickback_create_program',
         description: 'Create a Kickback affiliate program. Returns the created program.',
+        annotations: new ToolAnnotations(destructiveHint: true),
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN, dangerous: true)]
+    #[RequiresPermission(KickBack::PERMISSION_MANAGE_PROGRAMS)]
     public function createProgram(
         string $name,
         ?string $handle = null,
@@ -143,8 +151,10 @@ class ProgramTools
         name: 'kickback_update_program',
         description: 'Update a Kickback program by id. Only the fields you pass are changed. '
             . 'Set programStatus=archived to retire it.',
+        annotations: new ToolAnnotations(destructiveHint: true),
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN, dangerous: true)]
+    #[RequiresPermission(KickBack::PERMISSION_MANAGE_PROGRAMS)]
     public function updateProgram(
         int $id,
         ?string $name = null,

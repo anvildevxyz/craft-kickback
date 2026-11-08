@@ -3,8 +3,11 @@
 namespace anvildev\craftkickback\mcp;
 
 use anvildev\craftkickback\elements\ReferralElement;
+use anvildev\craftkickback\KickBack;
 use anvildev\craftkickback\mcp\support\Presenter;
 use Mcp\Capability\Attribute\McpTool;
+use Mcp\Schema\ToolAnnotations;
+use craft\mcp\attributes\RequiresPermission;
 use stimmt\craft\Mcp\attributes\McpToolMeta;
 use stimmt\craft\Mcp\enums\ToolCategory;
 
@@ -27,8 +30,10 @@ class ReferralTools
         name: 'kickback_list_referrals',
         description: 'List Kickback referrals, optionally filtered by affiliate, program, status and order. '
             . 'Customer details are redacted.',
+        annotations: new ToolAnnotations(readOnlyHint: true),
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
+    #[RequiresPermission(KickBack::PERMISSION_MANAGE_REFERRALS)]
     public function listReferrals(
         ?int $affiliateId = null,
         ?int $programId = null,
@@ -70,8 +75,10 @@ class ReferralTools
     #[McpTool(
         name: 'kickback_get_referral',
         description: 'Get a single Kickback referral by id. Customer details are redacted.',
+        annotations: new ToolAnnotations(readOnlyHint: true),
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
+    #[RequiresPermission(KickBack::PERMISSION_MANAGE_REFERRALS)]
     public function getReferral(int $id): array
     {
         return $this->guard(function() use ($id): array {

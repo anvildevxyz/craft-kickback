@@ -7,6 +7,8 @@ use anvildev\craftkickback\KickBack;
 use anvildev\craftkickback\mcp\support\Presenter;
 use Craft;
 use Mcp\Capability\Attribute\McpTool;
+use Mcp\Schema\ToolAnnotations;
+use craft\mcp\attributes\RequiresPermission;
 use stimmt\craft\Mcp\attributes\McpToolMeta;
 use stimmt\craft\Mcp\enums\ToolCategory;
 
@@ -26,8 +28,10 @@ class CommissionRuleTools
     #[McpTool(
         name: 'kickback_list_commission_rules',
         description: 'List Kickback commission rules, optionally filtered by program and type, in priority order.',
+        annotations: new ToolAnnotations(readOnlyHint: true),
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
+    #[RequiresPermission(KickBack::PERMISSION_MANAGE_COMMISSIONS)]
     public function listCommissionRules(?int $programId = null, ?string $type = null, int $limit = 50, int $offset = 0): array
     {
         return $this->guard(function() use ($programId, $type, $limit, $offset): array {
@@ -58,8 +62,10 @@ class CommissionRuleTools
     #[McpTool(
         name: 'kickback_get_commission_rule',
         description: 'Get a single Kickback commission rule by id.',
+        annotations: new ToolAnnotations(readOnlyHint: true),
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
+    #[RequiresPermission(KickBack::PERMISSION_MANAGE_COMMISSIONS)]
     public function getCommissionRule(int $id): array
     {
         return $this->guard(function() use ($id): array {
@@ -91,8 +97,10 @@ class CommissionRuleTools
     #[McpTool(
         name: 'kickback_create_commission_rule',
         description: 'Create a Kickback commission rule for a program. Returns the created rule.',
+        annotations: new ToolAnnotations(destructiveHint: true),
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN, dangerous: true)]
+    #[RequiresPermission(KickBack::PERMISSION_MANAGE_COMMISSIONS)]
     public function createCommissionRule(
         int $programId,
         string $name,
@@ -155,8 +163,10 @@ class CommissionRuleTools
     #[McpTool(
         name: 'kickback_update_commission_rule',
         description: 'Update a Kickback commission rule by id. Only the fields you pass are changed.',
+        annotations: new ToolAnnotations(destructiveHint: true),
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN, dangerous: true)]
+    #[RequiresPermission(KickBack::PERMISSION_MANAGE_COMMISSIONS)]
     public function updateCommissionRule(
         int $id,
         ?string $name = null,

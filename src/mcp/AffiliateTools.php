@@ -7,6 +7,8 @@ use anvildev\craftkickback\KickBack;
 use anvildev\craftkickback\mcp\support\Presenter;
 use Craft;
 use Mcp\Capability\Attribute\McpTool;
+use Mcp\Schema\ToolAnnotations;
+use craft\mcp\attributes\RequiresPermission;
 use stimmt\craft\Mcp\attributes\McpToolMeta;
 use stimmt\craft\Mcp\enums\ToolCategory;
 
@@ -34,8 +36,10 @@ class AffiliateTools
         name: 'kickback_list_affiliates',
         description: 'List Kickback affiliates, optionally filtered by program, status and group. '
             . 'Payment details (PayPal/Stripe) are redacted.',
+        annotations: new ToolAnnotations(readOnlyHint: true),
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
+    #[RequiresPermission(KickBack::PERMISSION_MANAGE_AFFILIATES)]
     public function listAffiliates(
         ?int $programId = null,
         ?string $status = null,
@@ -79,8 +83,10 @@ class AffiliateTools
         name: 'kickback_get_affiliate',
         description: 'Get a single Kickback affiliate by id, including balances and lifetime stats. '
             . 'Payment details are redacted.',
+        annotations: new ToolAnnotations(readOnlyHint: true),
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
+    #[RequiresPermission(KickBack::PERMISSION_MANAGE_AFFILIATES)]
     public function getAffiliate(int $id): array
     {
         return $this->guard(function() use ($id): array {
@@ -100,8 +106,10 @@ class AffiliateTools
     #[McpTool(
         name: 'kickback_get_affiliate_by_code',
         description: 'Look up a Kickback affiliate by their unique referral code.',
+        annotations: new ToolAnnotations(readOnlyHint: true),
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
+    #[RequiresPermission(KickBack::PERMISSION_MANAGE_AFFILIATES)]
     public function getAffiliateByCode(string $referralCode): array
     {
         return $this->guard(function() use ($referralCode): array {
@@ -131,8 +139,10 @@ class AffiliateTools
         name: 'kickback_register_affiliate',
         description: 'Enroll an existing Craft user as a Kickback affiliate. Honors the auto-approve setting; '
             . 'otherwise the affiliate starts pending (use the Control Panel to approve).',
+        annotations: new ToolAnnotations(destructiveHint: true),
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN, dangerous: true)]
+    #[RequiresPermission(KickBack::PERMISSION_MANAGE_AFFILIATES)]
     public function registerAffiliate(
         int $userId,
         int $programId,
@@ -199,8 +209,10 @@ class AffiliateTools
         name: 'kickback_update_affiliate',
         description: 'Update a Kickback affiliate\'s profile/config (group, MLM parent, commission override, '
             . 'payout method/threshold, PayPal email, notes). Cannot change status or balances.',
+        annotations: new ToolAnnotations(destructiveHint: true),
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN, dangerous: true)]
+    #[RequiresPermission(KickBack::PERMISSION_MANAGE_AFFILIATES)]
     public function updateAffiliate(
         int $id,
         ?int $groupId = null,

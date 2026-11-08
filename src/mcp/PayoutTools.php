@@ -3,8 +3,11 @@
 namespace anvildev\craftkickback\mcp;
 
 use anvildev\craftkickback\elements\PayoutElement;
+use anvildev\craftkickback\KickBack;
 use anvildev\craftkickback\mcp\support\Presenter;
 use Mcp\Capability\Attribute\McpTool;
+use Mcp\Schema\ToolAnnotations;
+use craft\mcp\attributes\RequiresPermission;
 use stimmt\craft\Mcp\attributes\McpToolMeta;
 use stimmt\craft\Mcp\enums\ToolCategory;
 
@@ -28,8 +31,10 @@ class PayoutTools
         name: 'kickback_list_payouts',
         description: 'List Kickback payouts, optionally filtered by affiliate, status and method. '
             . 'Gateway references are redacted.',
+        annotations: new ToolAnnotations(readOnlyHint: true),
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
+    #[RequiresPermission(KickBack::PERMISSION_MANAGE_PAYOUTS)]
     public function listPayouts(
         ?int $affiliateId = null,
         ?string $status = null,
@@ -67,8 +72,10 @@ class PayoutTools
     #[McpTool(
         name: 'kickback_get_payout',
         description: 'Get a single Kickback payout by id. Gateway references are redacted.',
+        annotations: new ToolAnnotations(readOnlyHint: true),
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
+    #[RequiresPermission(KickBack::PERMISSION_MANAGE_PAYOUTS)]
     public function getPayout(int $id): array
     {
         return $this->guard(function() use ($id): array {

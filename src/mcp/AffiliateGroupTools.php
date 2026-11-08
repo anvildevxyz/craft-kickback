@@ -3,8 +3,11 @@
 namespace anvildev\craftkickback\mcp;
 
 use anvildev\craftkickback\elements\AffiliateGroupElement;
+use anvildev\craftkickback\KickBack;
 use anvildev\craftkickback\mcp\support\Presenter;
 use Mcp\Capability\Attribute\McpTool;
+use Mcp\Schema\ToolAnnotations;
+use craft\mcp\attributes\RequiresPermission;
 use stimmt\craft\Mcp\attributes\McpToolMeta;
 use stimmt\craft\Mcp\enums\ToolCategory;
 
@@ -22,8 +25,10 @@ class AffiliateGroupTools
     #[McpTool(
         name: 'kickback_list_affiliate_groups',
         description: 'List Kickback affiliate groups (name, handle, commission rate/type), in sort order.',
+        annotations: new ToolAnnotations(readOnlyHint: true),
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
+    #[RequiresPermission(KickBack::PERMISSION_MANAGE_AFFILIATES)]
     public function listAffiliateGroups(int $limit = 50, int $offset = 0): array
     {
         return $this->guard(function() use ($limit, $offset): array {
@@ -48,8 +53,10 @@ class AffiliateGroupTools
     #[McpTool(
         name: 'kickback_get_affiliate_group',
         description: 'Get a single Kickback affiliate group by id.',
+        annotations: new ToolAnnotations(readOnlyHint: true),
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
+    #[RequiresPermission(KickBack::PERMISSION_MANAGE_AFFILIATES)]
     public function getAffiliateGroup(int $id): array
     {
         return $this->guard(function() use ($id): array {

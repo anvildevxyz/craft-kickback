@@ -17,6 +17,9 @@ parameters:
         # its mcp/sdk attributes are not installed in this repo; src/mcp tools are only ever
         # loaded by craft-mcp's registry when it is present (registration is class_exists-guarded).
         - '#Attribute class Mcp\\Capability\\Attribute\\\w+ does not exist#'
+        - '#Mcp\\Schema\\ToolAnnotations#'
+        - '#craft\\mcp\\#'
+        - '#Mcp\\Capability\\Registry\\ToolReference#'
         - '#Attribute class stimmt\\craft\\Mcp\\attributes\\McpToolMeta does not exist#'
         - '#on an unknown class stimmt\\craft\\Mcp\\#'
         - '#has invalid type stimmt\\craft\\Mcp\\events\\RegisterToolsEvent#'

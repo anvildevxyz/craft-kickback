@@ -3,8 +3,11 @@
 namespace anvildev\craftkickback\mcp;
 
 use anvildev\craftkickback\elements\CommissionElement;
+use anvildev\craftkickback\KickBack;
 use anvildev\craftkickback\mcp\support\Presenter;
 use Mcp\Capability\Attribute\McpTool;
+use Mcp\Schema\ToolAnnotations;
+use craft\mcp\attributes\RequiresPermission;
 use stimmt\craft\Mcp\attributes\McpToolMeta;
 use stimmt\craft\Mcp\enums\ToolCategory;
 
@@ -27,8 +30,10 @@ class CommissionTools
     #[McpTool(
         name: 'kickback_list_commissions',
         description: 'List Kickback commissions, optionally filtered by affiliate, referral, status and payout.',
+        annotations: new ToolAnnotations(readOnlyHint: true),
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
+    #[RequiresPermission(KickBack::PERMISSION_MANAGE_COMMISSIONS)]
     public function listCommissions(
         ?int $affiliateId = null,
         ?int $referralId = null,
@@ -70,8 +75,10 @@ class CommissionTools
     #[McpTool(
         name: 'kickback_get_commission',
         description: 'Get a single Kickback commission by id.',
+        annotations: new ToolAnnotations(readOnlyHint: true),
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
+    #[RequiresPermission(KickBack::PERMISSION_MANAGE_COMMISSIONS)]
     public function getCommission(int $id): array
     {
         return $this->guard(function() use ($id): array {

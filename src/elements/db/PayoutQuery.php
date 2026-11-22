@@ -18,6 +18,15 @@ use Illuminate\Database\Query\Builder;
  */
 class PayoutQuery extends ElementQuery
 {
+    /**
+     * Declaring this real class-level property (not assigning it at
+     * runtime) is what makes Craft 6 auto-join this table — it replaces
+     * joinElementTable(), which beforePrepare() below still calls for
+     * Craft 5. Craft 5's own ElementQuery has no such property, so this
+     * is just an unused extra property there.
+     */
+    protected string $table = 'kickback_payouts';
+
     public ?int $affiliateId = null;
     public ?string $payoutStatus = null;
     public ?string $method = null;
@@ -81,6 +90,44 @@ class PayoutQuery extends ElementQuery
         }
 
         return parent::beforePrepare();
+    }
+
+    /**
+     * Craft 6 never calls beforePrepare() at all — this is the real hook
+     * there. Translates the same select/joins/filters above to the new
+     * Illuminate\Database\Query\Builder ($this->query is no longer split
+     * into query/subQuery, and has no andWhere()/joinElementTable()).
+     */
+    protected function elementQueryBeforeQuery(): void
+    {
+        parent::elementQueryBeforeQuery();
+
+        $this->query->addSelect([
+            'kickback_payouts.affiliateId',
+            'kickback_payouts.createdByUserId',
+            'kickback_payouts.amount',
+            'kickback_payouts.currency',
+            'kickback_payouts.method',
+            'kickback_payouts.status as payoutStatus',
+            'kickback_payouts.transactionId',
+            'kickback_payouts.gatewayBatchId',
+            'kickback_payouts.notes',
+            'kickback_payouts.processedAt',
+        ]);
+
+        foreach (['affiliateId' => $this->affiliateId, 'status' => $this->payoutStatus, 'method' => $this->method] as $col => $val) {
+            if ($val !== null) {
+                $this->query->whereParam("kickback_payouts.$col", $val);
+            }
+        }
+
+        if ($this->verificationStatus !== null) {
+            $this->query->leftJoin('kickback_approvals', function ($join) {
+                $join->on('kickback_approvals.targetId', '=', 'kickback_payouts.id')
+                    ->where('kickback_approvals.targetType', '=', 'payout');
+            });
+            $this->query->where('kickback_approvals.status', $this->verificationStatus);
+        }
     }
 
     protected function statusCondition(string $status): Closure

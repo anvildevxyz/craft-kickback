@@ -18,6 +18,15 @@ use Illuminate\Database\Query\Builder;
  */
 class CommissionQuery extends ElementQuery
 {
+    /**
+     * Declaring this real class-level property (not assigning it at
+     * runtime) is what makes Craft 6 auto-join this table — it replaces
+     * joinElementTable(), which beforePrepare() below still calls for
+     * Craft 5. Craft 5's own ElementQuery has no such property, so this
+     * is just an unused extra property there.
+     */
+    protected string $table = 'kickback_commissions';
+
     public ?int $referralId = null;
     public ?int $affiliateId = null;
     public ?string $commissionStatus = null;
@@ -82,6 +91,47 @@ class CommissionQuery extends ElementQuery
         }
 
         return parent::beforePrepare();
+    }
+
+    /**
+     * Craft 6 never calls beforePrepare() at all — this is the real hook
+     * there. Translates the same select/filters above to the new
+     * Illuminate\Database\Query\Builder ($this->query is no longer split
+     * into query/subQuery, and has no andWhere()/joinElementTable()).
+     */
+    protected function elementQueryBeforeQuery(): void
+    {
+        parent::elementQueryBeforeQuery();
+
+        $this->query->addSelect([
+            'kickback_commissions.referralId',
+            'kickback_commissions.affiliateId',
+            'kickback_commissions.amount',
+            'kickback_commissions.originalAmount',
+            'kickback_commissions.currency',
+            'kickback_commissions.rate',
+            'kickback_commissions.rateType',
+            'kickback_commissions.ruleApplied',
+            'kickback_commissions.ruleResolutionTrace',
+            'kickback_commissions.tier',
+            'kickback_commissions.status as commissionStatus',
+            'kickback_commissions.payoutId',
+            'kickback_commissions.description',
+            'kickback_commissions.dateApproved',
+            'kickback_commissions.dateReversed',
+        ]);
+
+        $params = [
+            'referralId' => $this->referralId,
+            'affiliateId' => $this->affiliateId,
+            'status' => $this->commissionStatus,
+            'payoutId' => $this->payoutId,
+        ];
+        foreach ($params as $col => $val) {
+            if ($val !== null) {
+                $this->query->whereParam("kickback_commissions.$col", $val);
+            }
+        }
     }
 
     protected function statusCondition(string $status): Closure

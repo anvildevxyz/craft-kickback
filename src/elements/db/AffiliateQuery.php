@@ -18,6 +18,15 @@ use Illuminate\Database\Query\Builder;
  */
 class AffiliateQuery extends ElementQuery
 {
+    /**
+     * Declaring this real class-level property (not assigning it at
+     * runtime) is what makes Craft 6 auto-join this table — it replaces
+     * joinElementTable(), which beforePrepare() below still calls for
+     * Craft 5. Craft 5's own ElementQuery has no such property, so this
+     * is just an unused extra property there.
+     */
+    protected string $table = 'kickback_affiliates';
+
     public ?int $userId = null;
     public ?int $programId = null;
     public ?string $affiliateStatus = null;
@@ -109,6 +118,53 @@ class AffiliateQuery extends ElementQuery
         }
 
         return parent::beforePrepare();
+    }
+
+    /**
+     * Craft 6 never calls beforePrepare() at all — this is the real hook
+     * there. Translates the same select/filters above to the new
+     * Illuminate\Database\Query\Builder ($this->query is no longer split
+     * into query/subQuery, and has no andWhere()/joinElementTable()).
+     */
+    protected function elementQueryBeforeQuery(): void
+    {
+        parent::elementQueryBeforeQuery();
+
+        $this->query->addSelect([
+            'kickback_affiliates.userId',
+            'kickback_affiliates.programId',
+            'kickback_affiliates.status as affiliateStatus',
+            'kickback_affiliates.referralCode',
+            'kickback_affiliates.commissionRateOverride',
+            'kickback_affiliates.commissionTypeOverride',
+            'kickback_affiliates.parentAffiliateId',
+            'kickback_affiliates.tierLevel',
+            'kickback_affiliates.groupId',
+            'kickback_affiliates.paypalEmail',
+            'kickback_affiliates.stripeAccountId',
+            'kickback_affiliates.payoutMethod',
+            'kickback_affiliates.payoutThreshold',
+            'kickback_affiliates.lifetimeEarnings',
+            'kickback_affiliates.lifetimeReferrals',
+            'kickback_affiliates.pendingBalance',
+            'kickback_affiliates.notes',
+            'kickback_affiliates.dateApproved',
+        ]);
+
+        $params = [
+            'userId' => $this->userId,
+            'programId' => $this->programId,
+            'status' => $this->affiliateStatus,
+            'groupId' => $this->groupId,
+            'parentAffiliateId' => $this->parentAffiliateId,
+            'referralCode' => $this->referralCode,
+            'payoutMethod' => $this->payoutMethod,
+        ];
+        foreach ($params as $col => $val) {
+            if ($val !== null) {
+                $this->query->whereParam("kickback_affiliates.$col", $val);
+            }
+        }
     }
 
     protected function statusCondition(string $status): Closure

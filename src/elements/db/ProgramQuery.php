@@ -19,6 +19,15 @@ use Illuminate\Database\Query\Builder;
  */
 class ProgramQuery extends ElementQuery
 {
+    /**
+     * Declaring this real class-level property (not assigning it at
+     * runtime) is what makes Craft 6 auto-join this table — it replaces
+     * joinElementTable(), which beforePrepare() below still calls for
+     * Craft 5. Craft 5's own ElementQuery has no such property, so this
+     * is just an unused extra property there.
+     */
+    protected string $table = 'kickback_programs';
+
     public ?string $handle = null;
     public ?string $programStatus = null;
 
@@ -70,6 +79,47 @@ class ProgramQuery extends ElementQuery
         }
 
         return parent::beforePrepare();
+    }
+
+    /**
+     * Craft 6 never calls beforePrepare() at all — this is the real hook
+     * there. Translates the same joins/select/filters above to the new
+     * Illuminate\Database\Query\Builder ($this->query is no longer split
+     * into query/subQuery, and has no andWhere()/joinElementTable()).
+     */
+    protected function elementQueryBeforeQuery(): void
+    {
+        parent::elementQueryBeforeQuery();
+
+        $currentSiteId = $this->siteId ?: Craft::$app->getSites()->getCurrentSite()->id;
+        $currentSiteId = (int)(is_array($currentSiteId)
+            ? ($currentSiteId[0] ?? Craft::$app->getSites()->getPrimarySite()->id)
+            : $currentSiteId);
+
+        $this->query->addSelect([
+            'kickback_programs.handle',
+            'kickback_programs.defaultCommissionRate',
+            'kickback_programs.defaultCommissionType',
+            'kickback_programs.cookieDuration',
+            'kickback_programs.allowSelfReferral',
+            'kickback_programs.enableCouponCreation',
+            'kickback_programs.propagationMethod',
+            'kickback_programs.status as programStatus',
+            'kickback_programs_sites.name',
+            'kickback_programs_sites.description',
+            'kickback_programs_sites.termsAndConditions',
+        ]);
+
+        $this->query->leftJoin('kickback_programs_sites', function ($join) use ($currentSiteId) {
+            $join->on('kickback_programs_sites.id', '=', 'kickback_programs.id')
+                ->where('kickback_programs_sites.siteId', '=', $currentSiteId);
+        });
+
+        foreach (['handle' => $this->handle, 'status' => $this->programStatus] as $col => $val) {
+            if ($val !== null) {
+                $this->query->whereParam("kickback_programs.$col", $val);
+            }
+        }
     }
 
     protected function statusCondition(string $status): Closure

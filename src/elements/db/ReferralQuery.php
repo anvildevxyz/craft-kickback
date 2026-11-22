@@ -18,6 +18,15 @@ use Illuminate\Database\Query\Builder;
  */
 class ReferralQuery extends ElementQuery
 {
+    /**
+     * Declaring this real class-level property (not assigning it at
+     * runtime) is what makes Craft 6 auto-join this table — it replaces
+     * joinElementTable(), which beforePrepare() below still calls for
+     * Craft 5. Craft 5's own ElementQuery has no such property, so this
+     * is just an unused extra property there.
+     */
+    protected string $table = 'kickback_referrals';
+
     public ?int $affiliateId = null;
     public ?int $programId = null;
     public ?int $orderId = null;
@@ -97,6 +106,48 @@ class ReferralQuery extends ElementQuery
         }
 
         return parent::beforePrepare();
+    }
+
+    /**
+     * Craft 6 never calls beforePrepare() at all — this is the real hook
+     * there. Translates the same select/filters above to the new
+     * Illuminate\Database\Query\Builder ($this->query is no longer split
+     * into query/subQuery, and has no andWhere()/joinElementTable()).
+     */
+    protected function elementQueryBeforeQuery(): void
+    {
+        parent::elementQueryBeforeQuery();
+
+        $this->query->addSelect([
+            'kickback_referrals.affiliateId',
+            'kickback_referrals.programId',
+            'kickback_referrals.orderId',
+            'kickback_referrals.clickId',
+            'kickback_referrals.customerEmail',
+            'kickback_referrals.customerId',
+            'kickback_referrals.orderSubtotal',
+            'kickback_referrals.status as referralStatus',
+            'kickback_referrals.attributionMethod',
+            'kickback_referrals.couponCode',
+            'kickback_referrals.referralResolutionTrace',
+            'kickback_referrals.fraudFlags',
+            'kickback_referrals.dateApproved',
+            'kickback_referrals.datePaid',
+        ]);
+
+        $params = [
+            'affiliateId' => $this->affiliateId,
+            'programId' => $this->programId,
+            'orderId' => $this->orderId,
+            'status' => $this->referralStatus,
+            'customerEmail' => $this->customerEmail,
+            'couponCode' => $this->couponCode,
+        ];
+        foreach ($params as $col => $val) {
+            if ($val !== null) {
+                $this->query->whereParam("kickback_referrals.$col", $val);
+            }
+        }
     }
 
     protected function statusCondition(string $status): Closure

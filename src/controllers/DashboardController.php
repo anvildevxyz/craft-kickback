@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace anvildev\craftkickback\controllers;
 
 use anvildev\craftkickback\elements\AffiliateElement;
+use anvildev\craftkickback\helpers\TemplateArrayHelper;
 use anvildev\craftkickback\KickBack;
 use anvildev\craftkickback\models\Commission;
 use anvildev\craftkickback\models\Referral;
@@ -78,8 +79,9 @@ class DashboardController extends Controller
         return $this->renderTemplate('kickback/dashboard/index', [
             'stats' => $stats,
             'recentAffiliates' => $recentAffiliates,
-            'recentReferrals' => $recentReferrals,
-            'recentCommissions' => $recentCommissions,
+            // Plain arrays: Craft 6 Twig crashes on null-valued ActiveRecord attrs.
+            'recentReferrals' => TemplateArrayHelper::fromRecords($recentReferrals),
+            'recentCommissions' => TemplateArrayHelper::fromRecords($recentCommissions),
             'affiliates' => $affiliates,
             'pendingCount' => $pendingCount,
             'settings' => $settings,

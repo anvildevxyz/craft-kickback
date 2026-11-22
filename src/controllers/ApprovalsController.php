@@ -8,6 +8,7 @@ use anvildev\craftkickback\exceptions\ApprovalAlreadyResolvedException;
 use anvildev\craftkickback\exceptions\ApprovalNotFoundException;
 use anvildev\craftkickback\exceptions\ApprovalTargetMissingException;
 use anvildev\craftkickback\exceptions\SelfVerificationException;
+use anvildev\craftkickback\helpers\TemplateArrayHelper;
 use anvildev\craftkickback\KickBack;
 use anvildev\craftkickback\records\ApprovalRecord;
 use Craft;
@@ -100,6 +101,8 @@ class ApprovalsController extends Controller
         foreach ($rows as &$row) {
             $id = $row['approval']->requestedUserId;
             $row['requestedUserName'] = $id !== null ? ($verifiers[$id] ?? null) : null;
+            // Plain array before Twig: null requestedUserId/note crash Craft 6.
+            $row['approval'] = TemplateArrayHelper::fromRecord($row['approval']);
         }
         unset($row);
 

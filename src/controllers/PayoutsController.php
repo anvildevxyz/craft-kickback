@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace anvildev\craftkickback\controllers;
 
 use anvildev\craftkickback\helpers\CsvExportHelper;
+use anvildev\craftkickback\helpers\TemplateArrayHelper;
 use anvildev\craftkickback\jobs\BatchPayoutJob;
 use anvildev\craftkickback\KickBack;
 use Craft;
@@ -81,12 +82,15 @@ class PayoutsController extends Controller
         }
 
         $gateway = $plugin->payoutGateways->getGateway($payout->method);
+        $approval = $plugin->approvals->getFor('payout', $payoutId);
 
         return $this->renderTemplate('kickback/payouts/_view', [
             'payout' => $payout,
             'affiliate' => $plugin->affiliates->getAffiliateById($payout->affiliateId),
             'gatewayAvailable' => $gateway !== null && $gateway->isConfigured(),
             'gatewayName' => $gateway?->getDisplayName(),
+            // Plain array: Twig null-attrs on ApprovalRecord 500 on Craft 6.
+            'approval' => $approval !== null ? TemplateArrayHelper::fromRecord($approval) : null,
         ]);
     }
 

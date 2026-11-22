@@ -6,6 +6,7 @@ namespace anvildev\craftkickback\controllers;
 
 use anvildev\craftkickback\elements\AffiliateElement;
 use anvildev\craftkickback\helpers\Http;
+use anvildev\craftkickback\helpers\TemplateArrayHelper;
 use anvildev\craftkickback\KickBack;
 use anvildev\craftkickback\models\Commission;
 use anvildev\craftkickback\models\Referral;
@@ -86,9 +87,9 @@ class PortalController extends Controller
 
         return $this->renderTemplate('kickback/portal/dashboard', [
             'affiliate' => $this->_affiliate,
-            'recentReferrals' => $recentReferrals,
+            'recentReferrals' => TemplateArrayHelper::fromRecords($recentReferrals),
             'totalReferralCount' => $totalReferralCount,
-            'recentCommissions' => $recentCommissions,
+            'recentCommissions' => TemplateArrayHelper::fromRecords($recentCommissions),
             'totalCommissionCount' => $totalCommissionCount,
             'clickCount' => $clickCount,
             'settings' => $plugin->getSettings(),
@@ -144,7 +145,7 @@ class PortalController extends Controller
 
         return $this->renderTemplate('kickback/portal/commissions', [
             'affiliate' => $this->_affiliate,
-            'commissions' => $commissions,
+            'commissions' => TemplateArrayHelper::fromRecords($commissions),
             'currentStatus' => $status,
             'statuses' => Commission::STATUSES,
             'settings' => $plugin->getSettings(),
@@ -186,7 +187,7 @@ class PortalController extends Controller
 
         return $this->renderTemplate('kickback/portal/referrals', [
             'affiliate' => $this->_affiliate,
-            'referrals' => $referrals,
+            'referrals' => TemplateArrayHelper::fromRecords($referrals),
             'currentStatus' => $status,
             'currentSubId' => $subId,
             'statuses' => Referral::STATUSES,
@@ -238,7 +239,7 @@ class PortalController extends Controller
             $commerceCoupon = $commerce?->getCoupons()->getCouponByCode($record->code);
 
             $couponData = [
-                'record' => $record,
+                'record' => TemplateArrayHelper::fromRecord($record),
                 'enabled' => $discount?->enabled ?? false,
                 'uses' => $commerceCoupon->uses ?? 0,
                 'maxUses' => $commerceCoupon->maxUses ?? null,
@@ -256,7 +257,7 @@ class PortalController extends Controller
 
         return $this->renderTemplate('kickback/portal/coupons', [
             'affiliate' => $this->_affiliate,
-            'coupons' => $records,
+            'coupons' => TemplateArrayHelper::fromRecords($records),
             'activeCoupons' => $activeCoupons,
             'inactiveCoupons' => $inactiveCoupons,
             'settings' => $plugin->getSettings(),

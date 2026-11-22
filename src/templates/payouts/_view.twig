@@ -7,10 +7,9 @@
     { label: 'nav.payouts'|t('kickback'), url: url('kickback/payouts') },
 ] %}
 
-{# Load approval + verification gate once - both the sidebar and the action
-   block in {% block content %} reference these. #}
+{# Approval is passed as a plain array from the controller (Craft 6 Twig
+   crashes on null-valued ActiveRecord attributes). #}
 {% set kickbackPlugin = craft.app.plugins.getPlugin('kickback') %}
-{% set approval = kickbackPlugin.approvals.getFor('payout', payout.id) %}
 {% set verificationRequired = kickbackPlugin.settings.requirePayoutVerification %}
 {% set canProcess = not verificationRequired or (approval is not null and approval.status == 'approved') %}
 

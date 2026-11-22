@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace anvildev\craftkickback\elements\db;
 
 use anvildev\craftkickback\elements\ReferralElement;
+use Closure;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
+use Illuminate\Database\Query\Builder;
 
 /**
  * @method ReferralElement|null one($db = null)
@@ -97,7 +99,7 @@ class ReferralQuery extends ElementQuery
         return parent::beforePrepare();
     }
 
-    protected function statusCondition(string $status): mixed
+    protected function statusCondition(string $status): Closure
     {
         $map = [
             ReferralElement::STATUS_PENDING => 'pending',
@@ -107,7 +109,7 @@ class ReferralQuery extends ElementQuery
             ReferralElement::STATUS_FLAGGED => 'flagged',
         ];
         return isset($map[$status])
-            ? ['kickback_referrals.status' => $map[$status]]
+            ? fn (Builder $q) => $q->where('kickback_referrals.status', $map[$status])
             : parent::statusCondition($status);
     }
 }

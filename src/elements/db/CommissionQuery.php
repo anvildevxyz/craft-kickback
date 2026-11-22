@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace anvildev\craftkickback\elements\db;
 
 use anvildev\craftkickback\elements\CommissionElement;
+use Closure;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
+use Illuminate\Database\Query\Builder;
 
 /**
  * @method CommissionElement|null one($db = null)
@@ -82,7 +84,7 @@ class CommissionQuery extends ElementQuery
         return parent::beforePrepare();
     }
 
-    protected function statusCondition(string $status): mixed
+    protected function statusCondition(string $status): Closure
     {
         $map = [
             CommissionElement::STATUS_PENDING => 'pending',
@@ -92,7 +94,7 @@ class CommissionQuery extends ElementQuery
             CommissionElement::STATUS_REJECTED => 'rejected',
         ];
         return isset($map[$status])
-            ? ['kickback_commissions.status' => $map[$status]]
+            ? fn (Builder $q) => $q->where('kickback_commissions.status', $map[$status])
             : parent::statusCondition($status);
     }
 }

@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace anvildev\craftkickback\elements\db;
 
 use anvildev\craftkickback\elements\PayoutElement;
+use Closure;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
+use Illuminate\Database\Query\Builder;
 
 /**
  * @method PayoutElement|null one($db = null)
@@ -81,7 +83,7 @@ class PayoutQuery extends ElementQuery
         return parent::beforePrepare();
     }
 
-    protected function statusCondition(string $status): mixed
+    protected function statusCondition(string $status): Closure
     {
         $map = [
             PayoutElement::STATUS_PENDING => 'pending',
@@ -92,7 +94,7 @@ class PayoutQuery extends ElementQuery
             PayoutElement::STATUS_REVERSED => 'reversed',
         ];
         return isset($map[$status])
-            ? ['kickback_payouts.status' => $map[$status]]
+            ? fn (Builder $q) => $q->where('kickback_payouts.status', $map[$status])
             : parent::statusCondition($status);
     }
 }

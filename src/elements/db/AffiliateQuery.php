@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace anvildev\craftkickback\elements\db;
 
 use anvildev\craftkickback\elements\AffiliateElement;
+use Closure;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
+use Illuminate\Database\Query\Builder;
 
 /**
  * @method AffiliateElement|null one($db = null)
@@ -109,7 +111,7 @@ class AffiliateQuery extends ElementQuery
         return parent::beforePrepare();
     }
 
-    protected function statusCondition(string $status): mixed
+    protected function statusCondition(string $status): Closure
     {
         $map = [
             AffiliateElement::STATUS_ACTIVE => 'active',
@@ -118,7 +120,7 @@ class AffiliateQuery extends ElementQuery
             AffiliateElement::STATUS_REJECTED => 'rejected',
         ];
         return isset($map[$status])
-            ? ['kickback_affiliates.status' => $map[$status]]
+            ? fn (Builder $q) => $q->where('kickback_affiliates.status', $map[$status])
             : parent::statusCondition($status);
     }
 }

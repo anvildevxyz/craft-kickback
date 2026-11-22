@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace anvildev\craftkickback\elements\db;
 
 use anvildev\craftkickback\elements\ProgramElement;
+use Closure;
 use Craft;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
+use Illuminate\Database\Query\Builder;
 
 /**
  * @method ProgramElement|null one($db = null)
@@ -70,7 +72,7 @@ class ProgramQuery extends ElementQuery
         return parent::beforePrepare();
     }
 
-    protected function statusCondition(string $status): mixed
+    protected function statusCondition(string $status): Closure
     {
         $map = [
             ProgramElement::STATUS_ACTIVE => 'active',
@@ -78,7 +80,7 @@ class ProgramQuery extends ElementQuery
             ProgramElement::STATUS_ARCHIVED => 'archived',
         ];
         return isset($map[$status])
-            ? ['kickback_programs.status' => $map[$status]]
+            ? fn (Builder $q) => $q->where('kickback_programs.status', $map[$status])
             : parent::statusCondition($status);
     }
 }

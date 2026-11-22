@@ -27,7 +27,11 @@ class ProgramElement extends Element
 
     public const STATUS_ACTIVE = ProgramStatus::Active->value;
     public const STATUS_INACTIVE = ProgramStatus::Inactive->value;
-    public const STATUS_ARCHIVED = ProgramStatus::Archived->value;
+    // Not redeclared: identical to, and inherited from, Element::STATUS_ARCHIVED
+    // ('archived'). Craft 6 typed this constant (`public const string
+    // STATUS_ARCHIVED`), and a child redeclaring it without a matching type is a
+    // fatal at class-load time — PHP 8.3+'s typed-constant syntax this plugin's
+    // own PHP >=8.2 floor can't use.
 
     public const STATUSES = [
         self::STATUS_ACTIVE,

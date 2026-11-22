@@ -5,9 +5,10 @@ namespace anvildev\craftkickback\mcp;
 use anvildev\craftkickback\elements\AffiliateElement;
 use anvildev\craftkickback\KickBack;
 use anvildev\craftkickback\mcp\support\Presenter;
+use craft\mcp\attributes\RequiresPermission;
+use CraftCms\Cms\Mcp\Attributes\RequiresPermission as NativeRequiresPermission;
 use Mcp\Capability\Attribute\McpTool;
 use Mcp\Schema\ToolAnnotations;
-use craft\mcp\attributes\RequiresPermission;
 use stimmt\craft\Mcp\attributes\McpToolMeta;
 use stimmt\craft\Mcp\enums\ToolCategory;
 
@@ -31,6 +32,7 @@ class ReportTools
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
     #[RequiresPermission(KickBack::PERMISSION_VIEW_REPORTS)]
+    #[NativeRequiresPermission(KickBack::PERMISSION_VIEW_REPORTS)]
     public function stats(?string $startDate = null, ?string $endDate = null): array
     {
         return $this->guard(static fn(): array => [
@@ -49,6 +51,7 @@ class ReportTools
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
     #[RequiresPermission(KickBack::PERMISSION_VIEW_REPORTS)]
+    #[NativeRequiresPermission(KickBack::PERMISSION_VIEW_REPORTS)]
     public function topAffiliates(int $limit = 10): array
     {
         return $this->guard(function() use ($limit): array {
@@ -76,6 +79,7 @@ class ReportTools
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
     #[RequiresPermission(KickBack::PERMISSION_VIEW_REPORTS)]
+    #[NativeRequiresPermission(KickBack::PERMISSION_VIEW_REPORTS)]
     public function dailyCommissions(?string $startDate = null, ?string $endDate = null): array
     {
         return $this->guard(static fn(): array => [
@@ -95,6 +99,7 @@ class ReportTools
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
     #[RequiresPermission(KickBack::PERMISSION_VIEW_REPORTS)]
+    #[NativeRequiresPermission(KickBack::PERMISSION_VIEW_REPORTS)]
     public function dailyReferrals(?string $startDate = null, ?string $endDate = null): array
     {
         return $this->guard(static fn(): array => [

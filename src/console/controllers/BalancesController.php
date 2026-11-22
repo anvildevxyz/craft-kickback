@@ -35,7 +35,9 @@ class BalancesController extends Controller
         }
 
         $mismatches = 0;
-        foreach ($query->each() as $affiliate) {
+        // ElementQuery::each() on Craft 6 is Laravel's each(callable) and no
+        // longer returns an iterator the way Yii's each() did.
+        foreach ($query->all() as $affiliate) {
             /** @var AffiliateElement $affiliate */
             $approvedUnpaid = (float)(CommissionRecord::find()
                 ->where([

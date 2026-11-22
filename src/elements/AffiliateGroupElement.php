@@ -8,13 +8,19 @@ use anvildev\craftkickback\elements\db\AffiliateGroupQuery;
 use anvildev\craftkickback\KickBack;
 use anvildev\craftkickback\models\Commission;
 use anvildev\craftkickback\records\AffiliateGroupRecord;
+use anvildev\craftkickback\traits\SafeYiiElementHooks;
+use anvildev\craftkickback\validators\LegacyElementRules;
 use Craft;
 use craft\base\Element;
 use craft\elements\User;
 use craft\helpers\UrlHelper;
+use CraftCms\RulesetValidation\Attributes\Ruleset;
 
+#[Ruleset(LegacyElementRules::class)]
 class AffiliateGroupElement extends Element
 {
+    use SafeYiiElementHooks;
+
     public string $name = '';
     public string $handle = '';
     public float $commissionRate = 0.0;
@@ -59,7 +65,7 @@ class AffiliateGroupElement extends Element
     public function beforeValidate(): bool
     {
         $this->title = $this->name;
-        return parent::beforeValidate();
+        return $this->safeParentBeforeValidate();
     }
 
     protected function cpEditUrl(): ?string
@@ -188,7 +194,7 @@ class AffiliateGroupElement extends Element
 
     public function defineRules(): array
     {
-        $rules = parent::defineRules();
+        $rules = $this->safeParentDefineRules();
 
         $rules[] = [['name', 'handle'], 'required'];
         $rules[] = [['name'], 'string', 'max' => 255];

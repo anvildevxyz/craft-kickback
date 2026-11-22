@@ -5,9 +5,10 @@ namespace anvildev\craftkickback\mcp;
 use anvildev\craftkickback\elements\ProgramElement;
 use anvildev\craftkickback\KickBack;
 use anvildev\craftkickback\mcp\support\Presenter;
+use craft\mcp\attributes\RequiresPermission;
+use CraftCms\Cms\Mcp\Attributes\RequiresPermission as NativeRequiresPermission;
 use Mcp\Capability\Attribute\McpTool;
 use Mcp\Schema\ToolAnnotations;
-use craft\mcp\attributes\RequiresPermission;
 use stimmt\craft\Mcp\attributes\McpToolMeta;
 use stimmt\craft\Mcp\enums\ToolCategory;
 
@@ -30,6 +31,7 @@ class ProgramTools
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
     #[RequiresPermission(KickBack::PERMISSION_MANAGE_PROGRAMS)]
+    #[NativeRequiresPermission(KickBack::PERMISSION_MANAGE_PROGRAMS)]
     public function listPrograms(?string $status = null, int $limit = 50, int $offset = 0): array
     {
         return $this->guard(function() use ($status, $limit, $offset): array {
@@ -61,6 +63,7 @@ class ProgramTools
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
     #[RequiresPermission(KickBack::PERMISSION_MANAGE_PROGRAMS)]
+    #[NativeRequiresPermission(KickBack::PERMISSION_MANAGE_PROGRAMS)]
     public function getProgram(int $id): array
     {
         return $this->guard(function() use ($id): array {
@@ -94,6 +97,7 @@ class ProgramTools
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN, dangerous: true)]
     #[RequiresPermission(KickBack::PERMISSION_MANAGE_PROGRAMS)]
+    #[NativeRequiresPermission(KickBack::PERMISSION_MANAGE_PROGRAMS)]
     public function createProgram(
         string $name,
         ?string $handle = null,
@@ -155,6 +159,7 @@ class ProgramTools
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN, dangerous: true)]
     #[RequiresPermission(KickBack::PERMISSION_MANAGE_PROGRAMS)]
+    #[NativeRequiresPermission(KickBack::PERMISSION_MANAGE_PROGRAMS)]
     public function updateProgram(
         int $id,
         ?string $name = null,

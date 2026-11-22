@@ -6,9 +6,10 @@ use anvildev\craftkickback\elements\AffiliateElement;
 use anvildev\craftkickback\KickBack;
 use anvildev\craftkickback\mcp\support\Presenter;
 use Craft;
+use craft\mcp\attributes\RequiresPermission;
+use CraftCms\Cms\Mcp\Attributes\RequiresPermission as NativeRequiresPermission;
 use Mcp\Capability\Attribute\McpTool;
 use Mcp\Schema\ToolAnnotations;
-use craft\mcp\attributes\RequiresPermission;
 use stimmt\craft\Mcp\attributes\McpToolMeta;
 use stimmt\craft\Mcp\enums\ToolCategory;
 
@@ -40,6 +41,7 @@ class AffiliateTools
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
     #[RequiresPermission(KickBack::PERMISSION_MANAGE_AFFILIATES)]
+    #[NativeRequiresPermission(KickBack::PERMISSION_MANAGE_AFFILIATES)]
     public function listAffiliates(
         ?int $programId = null,
         ?string $status = null,
@@ -87,6 +89,7 @@ class AffiliateTools
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
     #[RequiresPermission(KickBack::PERMISSION_MANAGE_AFFILIATES)]
+    #[NativeRequiresPermission(KickBack::PERMISSION_MANAGE_AFFILIATES)]
     public function getAffiliate(int $id): array
     {
         return $this->guard(function() use ($id): array {
@@ -110,6 +113,7 @@ class AffiliateTools
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
     #[RequiresPermission(KickBack::PERMISSION_MANAGE_AFFILIATES)]
+    #[NativeRequiresPermission(KickBack::PERMISSION_MANAGE_AFFILIATES)]
     public function getAffiliateByCode(string $referralCode): array
     {
         return $this->guard(function() use ($referralCode): array {
@@ -143,6 +147,7 @@ class AffiliateTools
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN, dangerous: true)]
     #[RequiresPermission(KickBack::PERMISSION_MANAGE_AFFILIATES)]
+    #[NativeRequiresPermission(KickBack::PERMISSION_MANAGE_AFFILIATES)]
     public function registerAffiliate(
         int $userId,
         int $programId,
@@ -213,6 +218,7 @@ class AffiliateTools
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN, dangerous: true)]
     #[RequiresPermission(KickBack::PERMISSION_MANAGE_AFFILIATES)]
+    #[NativeRequiresPermission(KickBack::PERMISSION_MANAGE_AFFILIATES)]
     public function updateAffiliate(
         int $id,
         ?int $groupId = null,

@@ -5,9 +5,10 @@ namespace anvildev\craftkickback\mcp;
 use anvildev\craftkickback\elements\AffiliateGroupElement;
 use anvildev\craftkickback\KickBack;
 use anvildev\craftkickback\mcp\support\Presenter;
+use craft\mcp\attributes\RequiresPermission;
+use CraftCms\Cms\Mcp\Attributes\RequiresPermission as NativeRequiresPermission;
 use Mcp\Capability\Attribute\McpTool;
 use Mcp\Schema\ToolAnnotations;
-use craft\mcp\attributes\RequiresPermission;
 use stimmt\craft\Mcp\attributes\McpToolMeta;
 use stimmt\craft\Mcp\enums\ToolCategory;
 
@@ -29,6 +30,7 @@ class AffiliateGroupTools
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
     #[RequiresPermission(KickBack::PERMISSION_MANAGE_AFFILIATES)]
+    #[NativeRequiresPermission(KickBack::PERMISSION_MANAGE_AFFILIATES)]
     public function listAffiliateGroups(int $limit = 50, int $offset = 0): array
     {
         return $this->guard(function() use ($limit, $offset): array {
@@ -57,6 +59,7 @@ class AffiliateGroupTools
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
     #[RequiresPermission(KickBack::PERMISSION_MANAGE_AFFILIATES)]
+    #[NativeRequiresPermission(KickBack::PERMISSION_MANAGE_AFFILIATES)]
     public function getAffiliateGroup(int $id): array
     {
         return $this->guard(function() use ($id): array {

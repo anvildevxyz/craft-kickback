@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace anvildev\craftkickback\controllers;
 
 use anvildev\craftkickback\gateways\WebhookHandlerInterface;
+use anvildev\craftkickback\helpers\Http;
 use anvildev\craftkickback\KickBack;
 use Craft;
 use craft\web\Controller;
-use yii\web\BadRequestHttpException;
-use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 /**
@@ -29,11 +28,11 @@ class WebhooksController extends Controller
 
         $gateway = KickBack::getInstance()->payoutGateways->getGateway($handle);
         if ($gateway === null) {
-            throw new NotFoundHttpException("Unknown gateway: {$handle}");
+            throw Http::abortNotFound("Unknown gateway: {$handle}");
         }
 
         if (!$gateway instanceof WebhookHandlerInterface) {
-            throw new BadRequestHttpException("Gateway {$handle} does not accept webhooks.");
+            throw Http::abort(400, "Gateway {$handle} does not accept webhooks.");
         }
 
         $request = Craft::$app->getRequest();
@@ -44,7 +43,7 @@ class WebhooksController extends Controller
         if (!$result->verified) {
             $safeError = str_replace(["\r", "\n"], ' ', $result->errorMessage ?? '');
             Craft::warning("Rejected webhook for {$handle}: {$safeError}", __METHOD__);
-            throw new BadRequestHttpException('Invalid webhook signature.');
+            throw Http::abort(400, 'Invalid webhook signature.');
         }
 
         if ($result->processed) {

@@ -9,15 +9,21 @@ use anvildev\craftkickback\enums\PayoutMethod;
 use anvildev\craftkickback\enums\PayoutStatus;
 use anvildev\craftkickback\KickBack;
 use anvildev\craftkickback\records\PayoutRecord;
+use anvildev\craftkickback\traits\SafeYiiElementHooks;
+use anvildev\craftkickback\validators\LegacyElementRules;
 use Craft;
 use craft\base\Element;
 use craft\elements\User;
 use craft\helpers\Cp;
 use craft\helpers\UrlHelper;
+use CraftCms\RulesetValidation\Attributes\Ruleset;
 use DateTime;
 
+#[Ruleset(LegacyElementRules::class)]
 class PayoutElement extends Element
 {
+    use SafeYiiElementHooks;
+
     public const STATUS_PENDING = PayoutStatus::Pending->value;
     public const STATUS_PROCESSING = PayoutStatus::Processing->value;
     public const STATUS_COMPLETED = PayoutStatus::Completed->value;
@@ -395,7 +401,7 @@ class PayoutElement extends Element
 
     public function defineRules(): array
     {
-        $rules = parent::defineRules();
+        $rules = $this->safeParentDefineRules();
 
         $rules[] = [['amount', 'method', 'payoutStatus'], 'required'];
         $rules[] = [['amount'], 'number', 'min' => 0];

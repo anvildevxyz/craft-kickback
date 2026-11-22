@@ -5,9 +5,10 @@ namespace anvildev\craftkickback\mcp;
 use anvildev\craftkickback\elements\ReferralElement;
 use anvildev\craftkickback\KickBack;
 use anvildev\craftkickback\mcp\support\Presenter;
+use craft\mcp\attributes\RequiresPermission;
+use CraftCms\Cms\Mcp\Attributes\RequiresPermission as NativeRequiresPermission;
 use Mcp\Capability\Attribute\McpTool;
 use Mcp\Schema\ToolAnnotations;
-use craft\mcp\attributes\RequiresPermission;
 use stimmt\craft\Mcp\attributes\McpToolMeta;
 use stimmt\craft\Mcp\enums\ToolCategory;
 
@@ -34,6 +35,7 @@ class ReferralTools
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
     #[RequiresPermission(KickBack::PERMISSION_MANAGE_REFERRALS)]
+    #[NativeRequiresPermission(KickBack::PERMISSION_MANAGE_REFERRALS)]
     public function listReferrals(
         ?int $affiliateId = null,
         ?int $programId = null,
@@ -79,6 +81,7 @@ class ReferralTools
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
     #[RequiresPermission(KickBack::PERMISSION_MANAGE_REFERRALS)]
+    #[NativeRequiresPermission(KickBack::PERMISSION_MANAGE_REFERRALS)]
     public function getReferral(int $id): array
     {
         return $this->guard(function() use ($id): array {

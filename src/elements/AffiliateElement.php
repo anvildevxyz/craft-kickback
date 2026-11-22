@@ -10,15 +10,21 @@ use anvildev\craftkickback\gql\types\generators\AffiliateTypeGenerator;
 use anvildev\craftkickback\KickBack;
 use anvildev\craftkickback\models\Commission;
 use anvildev\craftkickback\records\AffiliateRecord;
+use anvildev\craftkickback\traits\SafeYiiElementHooks;
+use anvildev\craftkickback\validators\LegacyElementRules;
 use Craft;
 use craft\base\Element;
 use craft\elements\User;
 use craft\helpers\Cp;
 use craft\helpers\UrlHelper;
+use CraftCms\RulesetValidation\Attributes\Ruleset;
 use DateTime;
 
+#[Ruleset(LegacyElementRules::class)]
 class AffiliateElement extends Element
 {
+    use SafeYiiElementHooks;
+
     public const STATUS_ACTIVE = AffiliateStatus::Active->value;
     public const STATUS_PENDING = AffiliateStatus::Pending->value;
     public const STATUS_SUSPENDED = AffiliateStatus::Suspended->value;
@@ -394,7 +400,7 @@ class AffiliateElement extends Element
             ? self::calculateTierLevel(KickBack::getInstance()->affiliates->getAffiliateById($this->parentAffiliateId)?->tierLevel)
             : 1;
 
-        return parent::beforeValidate();
+        return $this->safeParentBeforeValidate();
     }
 
     public function afterSave(bool $isNew): void
@@ -432,7 +438,7 @@ class AffiliateElement extends Element
 
     public function defineRules(): array
     {
-        $rules = parent::defineRules();
+        $rules = $this->safeParentDefineRules();
 
         $rules[] = [['userId', 'programId', 'referralCode'], 'required'];
         $rules[] = [['referralCode'], 'string', 'max' => 50];

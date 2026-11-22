@@ -9,16 +9,22 @@ use anvildev\craftkickback\gql\types\generators\CommissionTypeGenerator;
 use anvildev\craftkickback\KickBack;
 use anvildev\craftkickback\models\Commission;
 use anvildev\craftkickback\records\CommissionRecord;
+use anvildev\craftkickback\traits\SafeYiiElementHooks;
+use anvildev\craftkickback\validators\LegacyElementRules;
 use Craft;
 use craft\base\Element;
 use craft\elements\User;
 use craft\helpers\Cp;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
+use CraftCms\RulesetValidation\Attributes\Ruleset;
 use DateTime;
 
+#[Ruleset(LegacyElementRules::class)]
 class CommissionElement extends Element
 {
+    use SafeYiiElementHooks;
+
     public const STATUS_PENDING = 'pending';
     public const STATUS_APPROVED = 'approved';
     public const STATUS_PAID = 'paid';
@@ -311,7 +317,7 @@ class CommissionElement extends Element
 
     public function defineRules(): array
     {
-        $rules = parent::defineRules();
+        $rules = $this->safeParentDefineRules();
 
         $rules[] = [['amount', 'rate', 'rateType'], 'required'];
         $rules[] = [['amount', 'rate'], 'number', 'min' => 0];

@@ -110,7 +110,7 @@ class ProgramQuery extends ElementQuery
             'kickback_programs_sites.termsAndConditions',
         ]);
 
-        $this->query->leftJoin('kickback_programs_sites', function ($join) use ($currentSiteId) {
+        $this->query->leftJoin('kickback_programs_sites', function($join) use ($currentSiteId) {
             $join->on('kickback_programs_sites.id', '=', 'kickback_programs.id')
                 ->where('kickback_programs_sites.siteId', '=', $currentSiteId);
         });
@@ -130,7 +130,7 @@ class ProgramQuery extends ElementQuery
             ProgramElement::STATUS_ARCHIVED => 'archived',
         ];
         return isset($map[$status])
-            ? fn (Builder $q) => $q->where('kickback_programs.status', $map[$status])
+            ? fn(Builder $q) => $q->where('kickback_programs.status', $map[$status])
             : parent::statusCondition($status);
     }
 }

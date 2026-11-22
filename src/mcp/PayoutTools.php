@@ -5,9 +5,10 @@ namespace anvildev\craftkickback\mcp;
 use anvildev\craftkickback\elements\PayoutElement;
 use anvildev\craftkickback\KickBack;
 use anvildev\craftkickback\mcp\support\Presenter;
+use craft\mcp\attributes\RequiresPermission;
+use CraftCms\Cms\Mcp\Attributes\RequiresPermission as NativeRequiresPermission;
 use Mcp\Capability\Attribute\McpTool;
 use Mcp\Schema\ToolAnnotations;
-use craft\mcp\attributes\RequiresPermission;
 use stimmt\craft\Mcp\attributes\McpToolMeta;
 use stimmt\craft\Mcp\enums\ToolCategory;
 
@@ -35,6 +36,7 @@ class PayoutTools
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
     #[RequiresPermission(KickBack::PERMISSION_MANAGE_PAYOUTS)]
+    #[NativeRequiresPermission(KickBack::PERMISSION_MANAGE_PAYOUTS)]
     public function listPayouts(
         ?int $affiliateId = null,
         ?string $status = null,
@@ -76,6 +78,7 @@ class PayoutTools
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
     #[RequiresPermission(KickBack::PERMISSION_MANAGE_PAYOUTS)]
+    #[NativeRequiresPermission(KickBack::PERMISSION_MANAGE_PAYOUTS)]
     public function getPayout(int $id): array
     {
         return $this->guard(function() use ($id): array {

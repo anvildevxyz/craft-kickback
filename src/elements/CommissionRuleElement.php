@@ -8,14 +8,20 @@ use anvildev\craftkickback\elements\db\CommissionRuleQuery;
 use anvildev\craftkickback\KickBack;
 use anvildev\craftkickback\models\Commission;
 use anvildev\craftkickback\records\CommissionRuleRecord;
+use anvildev\craftkickback\traits\SafeYiiElementHooks;
+use anvildev\craftkickback\validators\LegacyElementRules;
 use Craft;
 use craft\base\Element;
 use craft\elements\User;
 use craft\helpers\Cp;
 use craft\helpers\UrlHelper;
+use CraftCms\RulesetValidation\Attributes\Ruleset;
 
+#[Ruleset(LegacyElementRules::class)]
 class CommissionRuleElement extends Element
 {
+    use SafeYiiElementHooks;
+
     public const TYPE_PRODUCT = 'product';
     public const TYPE_CATEGORY = 'category';
     public const TYPE_TIERED = 'tiered';
@@ -80,7 +86,7 @@ class CommissionRuleElement extends Element
     public function beforeValidate(): bool
     {
         $this->title = $this->name;
-        return parent::beforeValidate();
+        return $this->safeParentBeforeValidate();
     }
 
     protected function cpEditUrl(): ?string
@@ -284,7 +290,7 @@ class CommissionRuleElement extends Element
 
     public function defineRules(): array
     {
-        $rules = parent::defineRules();
+        $rules = $this->safeParentDefineRules();
 
         $rules[] = [['name', 'type', 'programId', 'commissionRate'], 'required'];
         $rules[] = [['name'], 'string', 'max' => 255];

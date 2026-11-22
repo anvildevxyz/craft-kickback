@@ -6,9 +6,10 @@ use anvildev\craftkickback\elements\CommissionRuleElement;
 use anvildev\craftkickback\KickBack;
 use anvildev\craftkickback\mcp\support\Presenter;
 use Craft;
+use craft\mcp\attributes\RequiresPermission;
+use CraftCms\Cms\Mcp\Attributes\RequiresPermission as NativeRequiresPermission;
 use Mcp\Capability\Attribute\McpTool;
 use Mcp\Schema\ToolAnnotations;
-use craft\mcp\attributes\RequiresPermission;
 use stimmt\craft\Mcp\attributes\McpToolMeta;
 use stimmt\craft\Mcp\enums\ToolCategory;
 
@@ -32,6 +33,7 @@ class CommissionRuleTools
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
     #[RequiresPermission(KickBack::PERMISSION_MANAGE_COMMISSIONS)]
+    #[NativeRequiresPermission(KickBack::PERMISSION_MANAGE_COMMISSIONS)]
     public function listCommissionRules(?int $programId = null, ?string $type = null, int $limit = 50, int $offset = 0): array
     {
         return $this->guard(function() use ($programId, $type, $limit, $offset): array {
@@ -66,6 +68,7 @@ class CommissionRuleTools
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN)]
     #[RequiresPermission(KickBack::PERMISSION_MANAGE_COMMISSIONS)]
+    #[NativeRequiresPermission(KickBack::PERMISSION_MANAGE_COMMISSIONS)]
     public function getCommissionRule(int $id): array
     {
         return $this->guard(function() use ($id): array {
@@ -101,6 +104,7 @@ class CommissionRuleTools
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN, dangerous: true)]
     #[RequiresPermission(KickBack::PERMISSION_MANAGE_COMMISSIONS)]
+    #[NativeRequiresPermission(KickBack::PERMISSION_MANAGE_COMMISSIONS)]
     public function createCommissionRule(
         int $programId,
         string $name,
@@ -167,6 +171,7 @@ class CommissionRuleTools
     )]
     #[McpToolMeta(category: ToolCategory::PLUGIN, dangerous: true)]
     #[RequiresPermission(KickBack::PERMISSION_MANAGE_COMMISSIONS)]
+    #[NativeRequiresPermission(KickBack::PERMISSION_MANAGE_COMMISSIONS)]
     public function updateCommissionRule(
         int $id,
         ?string $name = null,

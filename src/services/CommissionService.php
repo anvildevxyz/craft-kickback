@@ -536,7 +536,9 @@ class CommissionService extends Component
         $RE = \anvildev\craftkickback\elements\ReferralElement::class;
 
         $referralIds = [];
-        foreach ($CE::find()->affiliateId($affiliateId)->commissionStatus($CE::STATUS_APPROVED)->andWhere(['kickback_commissions.payoutId' => null])->all() as $el) {
+        // A Yii hash where (`['col' => null]`) is rendered as the literal "?IS? ?NULL?"
+        // by Craft 6's element query. whereNull() is the builder method that emits IS NULL.
+        foreach ($CE::find()->affiliateId($affiliateId)->commissionStatus($CE::STATUS_APPROVED)->whereNull('kickback_commissions.payoutId')->all() as $el) {
             $el->commissionStatus = $CE::STATUS_PAID;
             $el->payoutId = $payoutId;
             $els->saveElement($el, false);
@@ -547,7 +549,7 @@ class CommissionService extends Component
 
         $terminal = [$CE::STATUS_PAID, $CE::STATUS_REVERSED, $CE::STATUS_REJECTED];
         foreach (array_keys($referralIds) as $rid) {
-            if ((int)$CE::find()->referralId($rid)->andWhere(['not in', 'kickback_commissions.status', $terminal])->count() === 0) {
+            if ((int)$CE::find()->referralId($rid)->whereNotIn('kickback_commissions.status', $terminal)->count() === 0) {
                 $ref = $RE::find()->id($rid)->one();
                 if ($ref !== null && $ref->referralStatus !== $RE::STATUS_REJECTED) {
                     $ref->referralStatus = $RE::STATUS_PAID;

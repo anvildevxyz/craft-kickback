@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace anvildev\craftkickback\controllers;
 
 use anvildev\craftkickback\elements\AffiliateElement;
+use anvildev\craftkickback\helpers\Http;
 use anvildev\craftkickback\KickBack;
 use anvildev\craftkickback\models\Commission;
 use anvildev\craftkickback\models\Referral;
 use Craft;
 use craft\web\Controller;
-use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
 /**
@@ -40,7 +40,7 @@ class PortalController extends Controller
                 $this->redirect('/' . $loginPath);
                 return false;
             }
-            throw new ForbiddenHttpException('Login Required');
+            throw Http::abort(403, 'Login Required');
         }
 
         $user = Craft::$app->getUser()->getIdentity();
@@ -63,7 +63,7 @@ class PortalController extends Controller
         }
 
         if (in_array($this->_affiliate->affiliateStatus, [AffiliateElement::STATUS_SUSPENDED, AffiliateElement::STATUS_REJECTED], true)) {
-            throw new ForbiddenHttpException('Your affiliate account is not active.');
+            throw Http::abort(403, 'Your affiliate account is not active.');
         }
 
         return true;
@@ -203,7 +203,7 @@ class PortalController extends Controller
         $settings = $plugin->getSettings();
 
         if (!$settings->enableMultiTier) {
-            throw new \yii\web\NotFoundHttpException('Multi-tier referral is not enabled.');
+            throw Http::abortNotFound('Multi-tier referral is not enabled.');
         }
 
         $downline = $plugin->affiliates->getAffiliatesByParentId($this->_affiliate->id);
@@ -272,7 +272,7 @@ class PortalController extends Controller
         $couponsUrl = '/' . $settings->getCurrentSitePortalPath() . '/coupons';
 
         if (!$settings->enableCouponCreation || !$settings->allowAffiliateSelfServiceCoupons) {
-            throw new ForbiddenHttpException('Affiliate self-service coupon generation is disabled.');
+            throw Http::abort(403, 'Affiliate self-service coupon generation is disabled.');
         }
 
         $maxCoupons = $settings->maxCouponsPerAffiliate;

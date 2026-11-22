@@ -122,7 +122,7 @@ class PayoutQuery extends ElementQuery
         }
 
         if ($this->verificationStatus !== null) {
-            $this->query->leftJoin('kickback_approvals', function ($join) {
+            $this->query->leftJoin('kickback_approvals', function($join) {
                 $join->on('kickback_approvals.targetId', '=', 'kickback_payouts.id')
                     ->where('kickback_approvals.targetType', '=', 'payout');
             });
@@ -141,7 +141,7 @@ class PayoutQuery extends ElementQuery
             PayoutElement::STATUS_REVERSED => 'reversed',
         ];
         return isset($map[$status])
-            ? fn (Builder $q) => $q->where('kickback_payouts.status', $map[$status])
+            ? fn(Builder $q) => $q->where('kickback_payouts.status', $map[$status])
             : parent::statusCondition($status);
     }
 }

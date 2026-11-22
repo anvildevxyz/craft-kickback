@@ -12,18 +12,23 @@ use anvildev\craftkickback\models\Commission;
 use anvildev\craftkickback\records\ProgramRecord;
 use anvildev\craftkickback\records\ProgramSiteRecord;
 use anvildev\craftkickback\traits\HasPropagation;
+use anvildev\craftkickback\traits\SafeYiiElementHooks;
+use anvildev\craftkickback\validators\LegacyElementRules;
 use Craft;
 use craft\base\Element;
 use craft\elements\User;
 use craft\helpers\Cp;
 use craft\helpers\UrlHelper;
+use CraftCms\RulesetValidation\Attributes\Ruleset;
 
 /**
  * @property \craft\enums\PropagationMethod $propagationMethod
  */
+#[Ruleset(LegacyElementRules::class)]
 class ProgramElement extends Element
 {
     use HasPropagation;
+    use SafeYiiElementHooks;
 
     public const STATUS_ACTIVE = ProgramStatus::Active->value;
     public const STATUS_INACTIVE = ProgramStatus::Inactive->value;
@@ -121,7 +126,7 @@ class ProgramElement extends Element
     public function beforeValidate(): bool
     {
         $this->title = $this->name;
-        return parent::beforeValidate();
+        return $this->safeParentBeforeValidate();
     }
 
     protected function cpEditUrl(): ?string
@@ -357,7 +362,7 @@ class ProgramElement extends Element
 
     public function defineRules(): array
     {
-        $rules = parent::defineRules();
+        $rules = $this->safeParentDefineRules();
 
         $rules[] = [['name', 'handle'], 'required'];
         $rules[] = [['name'], 'string', 'max' => 255];

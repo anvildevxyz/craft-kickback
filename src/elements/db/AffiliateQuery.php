@@ -176,7 +176,7 @@ class AffiliateQuery extends ElementQuery
             AffiliateElement::STATUS_REJECTED => 'rejected',
         ];
         return isset($map[$status])
-            ? fn (Builder $q) => $q->where('kickback_affiliates.status', $map[$status])
+            ? fn(Builder $q) => $q->where('kickback_affiliates.status', $map[$status])
             : parent::statusCondition($status);
     }
 }

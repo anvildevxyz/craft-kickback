@@ -160,7 +160,7 @@ class ReferralQuery extends ElementQuery
             ReferralElement::STATUS_FLAGGED => 'flagged',
         ];
         return isset($map[$status])
-            ? fn (Builder $q) => $q->where('kickback_referrals.status', $map[$status])
+            ? fn(Builder $q) => $q->where('kickback_referrals.status', $map[$status])
             : parent::statusCondition($status);
     }
 }

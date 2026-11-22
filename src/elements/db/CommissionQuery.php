@@ -144,7 +144,7 @@ class CommissionQuery extends ElementQuery
             CommissionElement::STATUS_REJECTED => 'rejected',
         ];
         return isset($map[$status])
-            ? fn (Builder $q) => $q->where('kickback_commissions.status', $map[$status])
+            ? fn(Builder $q) => $q->where('kickback_commissions.status', $map[$status])
             : parent::statusCondition($status);
     }
 }

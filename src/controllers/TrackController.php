@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace anvildev\craftkickback\controllers;
 
 use anvildev\craftkickback\elements\AffiliateElement;
+use anvildev\craftkickback\helpers\Http;
 use anvildev\craftkickback\KickBack;
 use Craft;
 use craft\web\Controller;
-use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 /**
@@ -22,7 +22,7 @@ class TrackController extends Controller
     {
         $affiliate = KickBack::getInstance()->affiliates->getAffiliateByReferralCode($code);
         if ($affiliate === null || $affiliate->affiliateStatus !== AffiliateElement::STATUS_ACTIVE) {
-            throw new NotFoundHttpException('Invalid referral link.');
+            throw Http::abortNotFound('Invalid referral link.');
         }
 
         $siteBaseUrl = Craft::$app->getSites()->getCurrentSite()->getBaseUrl();

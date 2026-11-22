@@ -140,6 +140,7 @@ class KickBack extends Plugin
         $this->registerWidgets();
         $this->registerVariable();
         $this->registerCpRoutes();
+        $this->excludeWebhookCsrf();
         $this->registerSiteRoutes();
         $this->registerPermissions();
         $this->registerGarbageCollection();
@@ -375,6 +376,27 @@ class KickBack extends Plugin
         });
     }
 
+    /**
+     * Craft 6 enforces CSRF in Laravel middleware, before the controller's
+     * enableCsrfValidation flag is consulted for a site-routed POST. The
+     * webhook URL has to be excluded up front. Craft 5 still uses the flag.
+     */
+    private function excludeWebhookCsrf(): void
+    {
+        if (!class_exists(\Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class)) {
+            return;
+        }
+
+        $actionTrigger = trim(\CraftCms\Cms\Cms::config()->actionTrigger, '/');
+        $paths = ['kickback/webhooks', 'kickback/webhooks/*'];
+        if ($actionTrigger !== '') {
+            $paths[] = $actionTrigger . '/kickback/webhooks';
+            $paths[] = $actionTrigger . '/kickback/webhooks/*';
+        }
+
+        \Illuminate\Foundation\Http\Middleware\PreventRequestForgery::except($paths);
+    }
+
     private function registerSiteRoutes(): void
     {
         Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_SITE_URL_RULES, function(RegisterUrlRulesEvent $event) {
@@ -489,6 +511,48 @@ class KickBack extends Plugin
      */
     private function registerCraftMcpTools(): void
     {
+        // Craft 6 replaced craft\services\Mcp with a container registry. The
+        // permission attribute moved with it, so each tool method also carries
+        // the native attribute. Writes stay hidden unless the install opted in.
+        if (class_exists(\CraftCms\Cms\Mcp\CapabilityRegistry::class)) {
+            app(\CraftCms\Cms\Mcp\CapabilityRegistry::class)->register(
+                \anvildev\craftkickback\mcp\AffiliateTools::class,
+                \anvildev\craftkickback\mcp\AffiliateGroupTools::class,
+                \anvildev\craftkickback\mcp\ProgramTools::class,
+                \anvildev\craftkickback\mcp\CommissionRuleTools::class,
+                \anvildev\craftkickback\mcp\ReferralTools::class,
+                \anvildev\craftkickback\mcp\CommissionTools::class,
+                \anvildev\craftkickback\mcp\PayoutTools::class,
+                \anvildev\craftkickback\mcp\ReportTools::class,
+            );
+
+            \Illuminate\Support\Facades\Event::listen(
+                \CraftCms\Cms\Mcp\Events\DiscoveringCapability::class,
+                static function(\CraftCms\Cms\Mcp\Events\DiscoveringCapability $event): void {
+                    $reference = $event->reference;
+                    if (!$reference instanceof \Mcp\Capability\Registry\ToolReference) {
+                        return;
+                    }
+                    if (!str_starts_with($reference->tool->name, 'kickback_')) {
+                        return;
+                    }
+                    if ($reference->tool->annotations?->destructiveHint === true
+                        && !self::getInstance()->getSettings()->mcpWriteEnabled) {
+                        $event->allowed = false;
+                    }
+                },
+            );
+
+            \Illuminate\Support\Facades\Event::listen(
+                \CraftCms\Cms\Mcp\Events\CollectingAdminInstructions::class,
+                static function(\CraftCms\Cms\Mcp\Events\CollectingAdminInstructions $event): void {
+                    $event->instructions[] = 'Use the kickback_* tools to read affiliates, programs, referrals, commissions, payouts, and reports. Writes stay hidden until MCP write operations are enabled in Kickback’s settings. Status changes and payout processing are not exposed.';
+                },
+            );
+
+            return;
+        }
+
         if (!class_exists(\craft\services\Mcp::class)) {
             return;
         }

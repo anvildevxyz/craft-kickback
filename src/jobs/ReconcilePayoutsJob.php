@@ -7,6 +7,7 @@ namespace anvildev\craftkickback\jobs;
 use anvildev\craftkickback\elements\PayoutElement;
 use anvildev\craftkickback\gateways\ReconciliationCapableInterface;
 use anvildev\craftkickback\helpers\DateHelper;
+use anvildev\craftkickback\helpers\ElementBatch;
 use anvildev\craftkickback\KickBack;
 use Craft;
 use craft\queue\BaseJob;
@@ -29,7 +30,7 @@ class ReconcilePayoutsJob extends BaseJob
         $processed = $reconciled = $unknown = 0;
         $plugin = KickBack::getInstance();
 
-        foreach ($query->each(100) as $payout) {
+        foreach (ElementBatch::each($query, 100) as $payout) {
             $this->setProgress($queue, $total > 0 ? ++$processed / $total : 1);
 
             $gateway = $plugin->payoutGateways->getGateway($payout->method);

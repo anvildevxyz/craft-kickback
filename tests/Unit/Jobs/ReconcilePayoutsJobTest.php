@@ -73,9 +73,9 @@ class ReconcilePayoutsJobTest extends TestCase
         );
 
         $this->assertStringContainsString(
-            '->each(',
+            'ElementBatch::each(',
             $body,
-            'execute() must stream payouts via ->each() rather than ->all() to avoid loading all elements into memory at once.',
+            'execute() must stream payouts via ElementBatch::each() (dual-compat on Craft 5/6) rather than ->all() to avoid loading all elements into memory at once.',
         );
     }
 }

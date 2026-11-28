@@ -130,6 +130,7 @@ class KickBack extends Plugin
         parent::init();
 
         Craft::setAlias('@kickback', $this->getBasePath());
+        Craft::setAlias('@anvildev/craftkickback', $this->getBasePath());
 
         if (Craft::$app->getRequest()->getIsConsoleRequest()) {
             $this->controllerNamespace = 'anvildev\\craftkickback\\console\\controllers';
